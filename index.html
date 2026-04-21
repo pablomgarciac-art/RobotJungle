@@ -2,26 +2,287 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Robot Jungle - El Taller de la Selva</title>
 <style>
-* { touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: #050a05; font-family: 'Courier New', monospace; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-#wrap { position: relative; width: 100%; max-width: 1100px; }
-#c { display: block; width: 100%; height: auto; border: 3px solid #1a331a; border-radius: 8px; box-shadow: 0 0 40px rgba(0,200,100,0.15); }
-#hud { position: absolute; top: 10px; left: 10px; right: 10px; display: none; pointer-events: none; flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 8px; }
-.hud-box { background: rgba(0,0,0,0.65); border: 1.5px solid rgba(100,220,120,0.5); border-radius: 8px; padding: 8px 14px; color: #fff; font-size: clamp(11px,2vw,15px); line-height: 2; font-weight: bold; letter-spacing: 1px; }
-.hud-label { font-size: clamp(9px,1.4vw,11px); color: #80cbc4; font-weight: normal; letter-spacing: 2px; display: block; margin-bottom: 1px; }
-.hud-val { font-size: clamp(14px,2.5vw,20px); font-weight: bold; }
-#barra-bat { width: 110px; height: 10px; background: #1a2a1a; border-radius: 5px; margin-top: 5px; border: 1px solid rgba(100,220,120,0.3); }
-#fill-bat { height: 10px; border-radius: 5px; background: #2ecc71; width: 0%; transition: width 0.25s, background 0.3s; }
-#msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%,-50%); font-size: clamp(13px,2.5vw,17px); font-weight: bold; pointer-events: none; display: none; text-align: center; text-shadow: 2px 2px #000; border-radius: 8px; padding: 10px 20px; white-space: nowrap; z-index: 10; }
-#ctrl { position: absolute; bottom: 6px; left: 0; right: 0; display: none; justify-content: space-between; padding: 0 12px; z-index: 20; pointer-events: none; }
-.btn-ctrl { width: clamp(52px,11vw,68px); height: clamp(52px,11vw,68px); background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-size: clamp(18px,4.5vw,24px); pointer-events: auto; }
-@media (pointer: coarse) { #ctrl { display: flex !important; } }
+/* ── ESTILOS BASE (FUNCIONAN EN PC Y MÓVIL) ── */
+* { 
+  touch-action: none; 
+  user-select: none; 
+  -webkit-tap-highlight-color: transparent; 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+}
+
+html, body { 
+  width: 100%; 
+  height: 100%; 
+  overflow: hidden; 
+  background: #050a05; 
+  font-family: 'Courier New', monospace; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+/* ── AVISO DE ROTACIÓN (MÓVIL) ── */
+#rotate-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0a1a0a 0%, #050a05 100%);
+  color: #80cbc4;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 9999;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  padding: 20px;
+}
+
+#rotate-warning .icon {
+  font-size: 80px;
+  margin-bottom: 30px;
+  animation: rotatePhone 2.5s ease-in-out infinite;
+}
+
+#rotate-warning h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #f1c40f;
+  text-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+}
+
+#rotate-warning p {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+@keyframes rotatePhone {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-90deg); }
+  75% { transform: rotate(-90deg); }
+}
+
+/* Mostrar aviso SOLO en móvil vertical */
+@media (orientation: portrait) and (pointer: coarse) {
+  #rotate-warning {
+    display: flex !important;
+  }
+  #wrap {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) {
+  #rotate-warning {
+    display: none !important;
+  }
+  #wrap {
+    display: block;
+  }
+}
+
+#wrap { 
+  position: relative; 
+  width: 100%; 
+  max-width: 1100px; 
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+#c { 
+  display: block; 
+  width: 100%; 
+  height: auto; 
+  border: 3px solid #1a331a; 
+  border-radius: 8px; 
+  box-shadow: 0 0 40px rgba(0,200,100,0.15); 
+}
+
+/* ── HUD (MEJORADO PARA MÓVIL) ── */
+#hud { 
+  position: absolute; 
+  top: 6px; 
+  left: 6px; 
+  right: 6px; 
+  display: none; 
+  pointer-events: none; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  gap: 4px; 
+  z-index: 5;
+}
+
+.hud-box { 
+  background: rgba(0,0,0,0.5); 
+  border: 1.5px solid rgba(100,220,120,0.5); 
+  border-radius: 6px; 
+  padding: 4px 8px; 
+  color: #fff; 
+  font-size: clamp(10px,2vw,13px); 
+  line-height: 1.4; 
+  font-weight: bold; 
+  letter-spacing: 1px; 
+  backdrop-filter: blur(2px);
+}
+
+.hud-label { 
+  font-size: clamp(8px,1.2vw,10px); 
+  color: #80cbc4; 
+  font-weight: normal; 
+  letter-spacing: 2px; 
+  display: block; 
+  margin-bottom: 1px; 
+}
+
+.hud-val { 
+  font-size: clamp(12px,2.2vw,18px); 
+  font-weight: bold; 
+}
+
+#barra-bat { 
+  width: 90px; 
+  height: 8px; 
+  background: #1a2a1a; 
+  border-radius: 4px; 
+  margin-top: 3px; 
+  border: 1px solid rgba(100,220,120,0.3); 
+}
+
+#fill-bat { 
+  height: 8px; 
+  border-radius: 4px; 
+  background: #2ecc71; 
+  width: 0%; 
+  transition: width 0.25s, background 0.3s; 
+}
+
+#msg { 
+  position: absolute; 
+  top: 40%; 
+  left: 50%; 
+  transform: translate(-50%,-50%); 
+  font-size: clamp(13px,2.5vw,17px); 
+  font-weight: bold; 
+  pointer-events: none; 
+  display: none; 
+  text-align: center; 
+  text-shadow: 2px 2px #000; 
+  border-radius: 8px; 
+  padding: 10px 20px; 
+  white-space: nowrap; 
+  z-index: 10; 
+}
+
+/* ── CONTROLES TÁCTILES (OPTIMIZADOS PARA HORIZONTAL) ── */
+#ctrl { 
+  position: absolute; 
+  bottom: 6px; 
+  left: 0; 
+  right: 0; 
+  display: none; 
+  justify-content: space-between; 
+  padding: 0 12px; 
+  z-index: 20; 
+  pointer-events: none; 
+}
+
+.btn-ctrl { 
+  width: clamp(48px, 11vw, 64px); 
+  height: clamp(48px, 11vw, 64px); 
+  background: rgba(0,0,0,0.35); 
+  border: 2px solid rgba(255,255,255,0.4); 
+  border-radius: 50%; 
+  color: #fff; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  font-size: clamp(20px,5vw,28px); 
+  pointer-events: auto; 
+  backdrop-filter: blur(3px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: all 0.1s;
+  touch-action: none;
+}
+
+.btn-ctrl:active {
+  background: rgba(255,255,255,0.2);
+  transform: scale(0.95);
+  border-color: rgba(255,255,255,0.8);
+}
+
+/* Ajustes específicos para móvil */
+@media (pointer: coarse) { 
+  #ctrl { 
+    display: flex !important; 
+  }
+  
+  #hud {
+    top: 2px;
+    left: 2px;
+    right: 2px;
+  }
+  
+  .hud-box {
+    padding: 3px 6px;
+  }
+  
+  #wrap {
+    margin-bottom: 10px;
+  }
+}
+
+/* Ajustes para horizontal en móvil */
+@media (orientation: landscape) and (pointer: coarse) {
+  #ctrl {
+    bottom: 8px;
+    padding: 0 20px;
+  }
+  
+  .btn-ctrl {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+  
+  #hud {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+  }
+}
+
+/* Ajuste para pantallas muy pequeñas */
+@media (max-width: 600px) and (orientation: landscape) and (pointer: coarse) {
+  .btn-ctrl {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+  #ctrl {
+    padding: 0 10px;
+    bottom: 5px;
+  }
+}
 </style>
 </head>
 <body>
+
+<!-- AVISO DE ROTACIÓN PARA MÓVIL -->
+<div id="rotate-warning">
+  <div class="icon">📱↻</div>
+  <h2>GIRA TU MÓVIL</h2>
+  <p>Para jugar, pon la pantalla en horizontal</p>
+  <p style="margin-top: 20px; font-size: 14px;">⬅️ ➡️</p>
+</div>
+
 <div id="wrap">
   <canvas id="c"></canvas>
   <div id="hud">
@@ -41,11 +302,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #050a05; f
   </div>
   <div id="msg"></div>
   <div id="ctrl">
-    <div style="display:flex;gap:10px;">
+    <div style="display:flex;gap:12px;">
       <div class="btn-ctrl" id="bL">◀</div>
       <div class="btn-ctrl" id="bR">▶</div>
     </div>
-    <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.35);border-color:rgba(46,204,113,0.7);">▲</div>
+    <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.3);border-color:rgba(46,204,113,0.7);">▲</div>
   </div>
 </div>
 
@@ -108,25 +369,63 @@ function sfxStomp() {
 const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
 cvs.width = 1100; cvs.height = 520;
 
+// Ajuste dinámico del canvas
 function resize() {
   const isTouch = window.matchMedia('(pointer: coarse)').matches;
-  const btnH = isTouch ? Math.max(52, Math.min(window.innerWidth*0.11, 68)) + 18 : 0;
+  const btnH = isTouch ? Math.max(52, Math.min(window.innerWidth*0.12, 68)) + 20 : 0;
   const maxW = Math.min(window.innerWidth - 6, 1100);
   const maxH = window.innerHeight - btnH - 6;
   const w = Math.min(maxW, maxH * (1100/520));
   document.getElementById('wrap').style.maxWidth = w + 'px';
 }
-resize(); window.addEventListener('resize', resize);
+resize(); 
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 50));
+
+// Prevenir scroll y zoom
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturestart', e => e.preventDefault());
 
 // ── CONTROLES ─────────────────────────────────────────────────────────────────
 const K = {};
 ['bL','bR','bU'].forEach((id, i) => {
   const keys = ['ArrowLeft','ArrowRight','ArrowUp'];
   const el = document.getElementById(id); if(!el) return;
-  el.addEventListener('touchstart', e => { e.preventDefault(); K[keys[i]] = true; }, {passive:false});
-  el.addEventListener('touchend',   e => { e.preventDefault(); K[keys[i]] = false; }, {passive:false});
-  el.addEventListener('touchcancel',e => { e.preventDefault(); K[keys[i]] = false; }, {passive:false});
+  
+  el.addEventListener('touchstart', e => { 
+    e.preventDefault(); 
+    e.stopPropagation();
+    K[keys[i]] = true; 
+    el.style.background = 'rgba(255,255,255,0.25)';
+  }, {passive:false});
+  
+  el.addEventListener('touchend', e => { 
+    e.preventDefault(); 
+    e.stopPropagation();
+    K[keys[i]] = false; 
+    el.style.background = ''; 
+  }, {passive:false});
+  
+  el.addEventListener('touchcancel', e => { 
+    e.preventDefault(); 
+    e.stopPropagation();
+    K[keys[i]] = false; 
+    el.style.background = ''; 
+  }, {passive:false});
+  
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    K[keys[i]] = true;
+  });
+  el.addEventListener('mouseup', e => {
+    e.preventDefault();
+    K[keys[i]] = false;
+  });
+  el.addEventListener('mouseleave', e => {
+    K[keys[i]] = false;
+  });
 });
+
 window.addEventListener('keydown', e => {
   K[e.code] = true;
   if(e.code === 'Enter' && !active) start();
@@ -490,6 +789,13 @@ function draw() {
 }
 
 cvs.addEventListener('click', () => { if(!active) start(); });
+cvs.addEventListener('touchstart', (e) => { 
+  if(!active) { 
+    e.preventDefault(); 
+    start(); 
+  } 
+}, { passive: false });
+
 titleLoop();
 </script>
 </body>
