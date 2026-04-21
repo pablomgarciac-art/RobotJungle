@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Robot Jungle - El Taller de la Selva</title>
 <style>
-/* ── ESTILOS BASE (FUNCIONAN EN PC Y MÓVIL) ── */
 * { 
   touch-action: none; 
   user-select: none; 
@@ -21,10 +20,17 @@ html, body {
   overflow: hidden; 
   background: #050a05; 
   font-family: 'Courier New', monospace; 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: center; 
-  align-items: center; 
+}
+
+/* Contenedor principal - ahora usa flex para mejor distribución */
+#game-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 /* ── AVISO DE ROTACIÓN (MÓVIL) ── */
@@ -70,12 +76,11 @@ html, body {
   75% { transform: rotate(-90deg); }
 }
 
-/* Mostrar aviso SOLO en móvil vertical */
 @media (orientation: portrait) and (pointer: coarse) {
   #rotate-warning {
     display: flex !important;
   }
-  #wrap {
+  #game-container {
     display: none;
   }
 }
@@ -84,16 +89,26 @@ html, body {
   #rotate-warning {
     display: none !important;
   }
-  #wrap {
-    display: block;
+  #game-container {
+    display: flex;
   }
+}
+
+/* ── ZONA DE JUEGO (CANVAS + HUD) ── */
+#game-area {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: calc(100% - 20px);
+  margin: 0 auto;
 }
 
 #wrap { 
   position: relative; 
-  width: 100%; 
-  max-width: 1100px; 
-  margin-bottom: env(safe-area-inset-bottom, 0px);
+  width: 100%;
+  max-width: 1100px;
 }
 
 #c { 
@@ -105,60 +120,60 @@ html, body {
   box-shadow: 0 0 40px rgba(0,200,100,0.15); 
 }
 
-/* ── HUD (MEJORADO PARA MÓVIL) ── */
+/* ── HUD (MUCHO MÁS COMPACTO) ── */
 #hud { 
   position: absolute; 
-  top: 6px; 
-  left: 6px; 
-  right: 6px; 
+  top: 4px; 
+  left: 4px; 
+  right: 4px; 
   display: none; 
   pointer-events: none; 
   flex-direction: row; 
   justify-content: space-between; 
   align-items: flex-start; 
-  gap: 4px; 
+  gap: 3px; 
   z-index: 5;
 }
 
 .hud-box { 
-  background: rgba(0,0,0,0.5); 
-  border: 1.5px solid rgba(100,220,120,0.5); 
-  border-radius: 6px; 
-  padding: 4px 8px; 
+  background: rgba(0,0,0,0.45); 
+  border: 1px solid rgba(100,220,120,0.4); 
+  border-radius: 4px; 
+  padding: 2px 6px; 
   color: #fff; 
-  font-size: clamp(10px,2vw,13px); 
-  line-height: 1.4; 
+  font-size: 11px; 
+  line-height: 1.3; 
   font-weight: bold; 
-  letter-spacing: 1px; 
+  letter-spacing: 0.5px; 
   backdrop-filter: blur(2px);
 }
 
 .hud-label { 
-  font-size: clamp(8px,1.2vw,10px); 
+  font-size: 8px; 
   color: #80cbc4; 
   font-weight: normal; 
-  letter-spacing: 2px; 
+  letter-spacing: 1px; 
   display: block; 
-  margin-bottom: 1px; 
+  margin-bottom: 0px; 
 }
 
 .hud-val { 
-  font-size: clamp(12px,2.2vw,18px); 
+  font-size: 13px; 
   font-weight: bold; 
 }
 
 #barra-bat { 
-  width: 90px; 
-  height: 8px; 
+  width: 70px; 
+  height: 6px; 
   background: #1a2a1a; 
-  border-radius: 4px; 
-  margin-top: 3px; 
+  border-radius: 3px; 
+  margin-top: 2px; 
   border: 1px solid rgba(100,220,120,0.3); 
 }
 
 #fill-bat { 
-  height: 8px; 
-  border-radius: 4px; 
+  height: 6px; 
+  border-radius: 3px; 
   background: #2ecc71; 
   width: 0%; 
   transition: width 0.25s, background 0.3s; 
@@ -169,34 +184,42 @@ html, body {
   top: 40%; 
   left: 50%; 
   transform: translate(-50%,-50%); 
-  font-size: clamp(13px,2.5vw,17px); 
+  font-size: 14px; 
   font-weight: bold; 
   pointer-events: none; 
   display: none; 
   text-align: center; 
   text-shadow: 2px 2px #000; 
   border-radius: 8px; 
-  padding: 10px 20px; 
+  padding: 8px 16px; 
   white-space: nowrap; 
   z-index: 10; 
 }
 
-/* ── CONTROLES TÁCTILES (OPTIMIZADOS PARA HORIZONTAL) ── */
-#ctrl { 
-  position: absolute; 
-  bottom: 6px; 
-  left: 0; 
-  right: 0; 
-  display: none; 
-  justify-content: space-between; 
-  padding: 0 12px; 
-  z-index: 20; 
-  pointer-events: none; 
+/* ── CONTROLES TÁCTILES (FUERA DEL CANVAS) ── */
+#ctrl-left, #ctrl-right {
+  display: none;
+  pointer-events: none;
+  z-index: 20;
+}
+
+#ctrl-left {
+  position: fixed;
+  left: 5px;
+  bottom: 50%;
+  transform: translateY(50%);
+}
+
+#ctrl-right {
+  position: fixed;
+  right: 5px;
+  bottom: 50%;
+  transform: translateY(50%);
 }
 
 .btn-ctrl { 
-  width: clamp(48px, 11vw, 64px); 
-  height: clamp(48px, 11vw, 64px); 
+  width: 60px; 
+  height: 60px; 
   background: rgba(0,0,0,0.35); 
   border: 2px solid rgba(255,255,255,0.4); 
   border-radius: 50%; 
@@ -204,12 +227,13 @@ html, body {
   display: flex; 
   justify-content: center; 
   align-items: center; 
-  font-size: clamp(20px,5vw,28px); 
+  font-size: 32px; 
   pointer-events: auto; 
   backdrop-filter: blur(3px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   transition: all 0.1s;
   touch-action: none;
+  margin: 5px 0;
 }
 
 .btn-ctrl:active {
@@ -218,57 +242,60 @@ html, body {
   border-color: rgba(255,255,255,0.8);
 }
 
+.ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.ctrl-group > * {
+  pointer-events: auto;
+}
+
 /* Ajustes específicos para móvil */
 @media (pointer: coarse) { 
-  #ctrl { 
-    display: flex !important; 
+  #ctrl-left, #ctrl-right { 
+    display: block !important; 
   }
   
   #hud {
-    top: 2px;
-    left: 2px;
-    right: 2px;
+    top: 3px;
+    left: 3px;
+    right: 3px;
   }
   
   .hud-box {
-    padding: 3px 6px;
+    padding: 2px 5px;
   }
   
-  #wrap {
-    margin-bottom: 10px;
+  #game-area {
+    max-width: calc(100% - 140px);
   }
 }
 
-/* Ajustes para horizontal en móvil */
-@media (orientation: landscape) and (pointer: coarse) {
-  #ctrl {
-    bottom: 8px;
-    padding: 0 20px;
-  }
-  
-  .btn-ctrl {
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
-  }
-  
-  #hud {
-    top: 8px;
-    left: 8px;
-    right: 8px;
-  }
-}
-
-/* Ajuste para pantallas muy pequeñas */
-@media (max-width: 600px) and (orientation: landscape) and (pointer: coarse) {
+/* Ajustes para pantallas más pequeñas */
+@media (max-width: 700px) and (pointer: coarse) {
   .btn-ctrl {
     width: 50px;
     height: 50px;
-    font-size: 24px;
+    font-size: 28px;
   }
-  #ctrl {
-    padding: 0 10px;
-    bottom: 5px;
+  
+  #game-area {
+    max-width: calc(100% - 120px);
+  }
+  
+  .hud-box {
+    padding: 1px 4px;
+  }
+  
+  .hud-val {
+    font-size: 11px;
+  }
+  
+  #barra-bat {
+    width: 50px;
   }
 }
 </style>
@@ -283,29 +310,41 @@ html, body {
   <p style="margin-top: 20px; font-size: 14px;">⬅️ ➡️</p>
 </div>
 
-<div id="wrap">
-  <canvas id="c"></canvas>
-  <div id="hud">
-    <div class="hud-box">
-      <span class="hud-label">VIDAS</span>
-      <span class="hud-val" id="vidas">❤️❤️❤️</span>
-    </div>
-    <div class="hud-box" style="text-align:center;">
-      <span class="hud-label">BATERÍA</span>
-      <span class="hud-val" id="bpct">0%</span>
-      <div id="barra-bat"><div id="fill-bat"></div></div>
-    </div>
-    <div class="hud-box" style="text-align:right;">
-      <span class="hud-label">FASE</span>
-      <span class="hud-val" id="fase">1</span>
-    </div>
-  </div>
-  <div id="msg"></div>
-  <div id="ctrl">
-    <div style="display:flex;gap:12px;">
+<!-- CONTENEDOR PRINCIPAL -->
+<div id="game-container">
+  <!-- CONTROLES IZQUIERDA (Movimiento) -->
+  <div id="ctrl-left">
+    <div class="ctrl-group">
       <div class="btn-ctrl" id="bL">◀</div>
       <div class="btn-ctrl" id="bR">▶</div>
     </div>
+  </div>
+  
+  <!-- ÁREA DE JUEGO -->
+  <div id="game-area">
+    <div id="wrap">
+      <canvas id="c"></canvas>
+      <div id="hud">
+        <div class="hud-box">
+          <span class="hud-label">VIDAS</span>
+          <span class="hud-val" id="vidas">❤️❤️❤️</span>
+        </div>
+        <div class="hud-box" style="text-align:center;">
+          <span class="hud-label">BATERÍA</span>
+          <span class="hud-val" id="bpct">0%</span>
+          <div id="barra-bat"><div id="fill-bat"></div></div>
+        </div>
+        <div class="hud-box" style="text-align:right;">
+          <span class="hud-label">FASE</span>
+          <span class="hud-val" id="fase">1</span>
+        </div>
+      </div>
+      <div id="msg"></div>
+    </div>
+  </div>
+  
+  <!-- CONTROLES DERECHA (Salto) -->
+  <div id="ctrl-right">
     <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.3);border-color:rgba(46,204,113,0.7);">▲</div>
   </div>
 </div>
@@ -372,9 +411,8 @@ cvs.width = 1100; cvs.height = 520;
 // Ajuste dinámico del canvas
 function resize() {
   const isTouch = window.matchMedia('(pointer: coarse)').matches;
-  const btnH = isTouch ? Math.max(52, Math.min(window.innerWidth*0.12, 68)) + 20 : 0;
-  const maxW = Math.min(window.innerWidth - 6, 1100);
-  const maxH = window.innerHeight - btnH - 6;
+  const maxW = Math.min(window.innerWidth - (isTouch ? 140 : 20), 1100);
+  const maxH = window.innerHeight - 10;
   const w = Math.min(maxW, maxH * (1100/520));
   document.getElementById('wrap').style.maxWidth = w + 'px';
 }
