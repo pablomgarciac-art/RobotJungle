@@ -1,257 +1,477 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Robot Jungle - El Taller de la Selva</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <style>
-        /* Desactiva gestos del navegador que ralentizan el juego */
-        * { touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-        
-        body { margin: 0; overflow: hidden; background: #050a05; font-family: 'Press Start 2P', cursive; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { background: linear-gradient(#1e3c72 0%, #4facfe 100%); border: 6px solid #1a331a; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,0.9); max-width: 95vw; max-height: 80vh; }
-        
-        #ui-overlay { position: absolute; width: 800px; height: 400px; pointer-events: none; }
-        .stats { position: absolute; top: 20px; left: 20px; color: #fff; font-size: 10px; text-shadow: 2px 2px #000; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; border: 1px solid #4caf50; }
-        .pantalla-completa { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.8); color: #fff; text-align: center; pointer-events: auto; }
-        .mensaje-aviso { position: absolute; width: 100%; top: 50%; transform: translateY(-50%); text-align: center; font-size: 18px; font-weight: bold; pointer-events: none; display: none; z-index: 10; }
-        .parpadeo { animation: parpadeo 1s infinite; }
-        @keyframes parpadeo { 50% { opacity: 0; } }
-
-        /* Controles móviles */
-        #controles-movil { position: fixed; bottom: 20px; width: 100%; display: none; justify-content: space-between; padding: 0 25px; box-sizing: border-box; pointer-events: none; }
-        .btn { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 3px solid #fff; border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 24px; pointer-events: auto; }
-        @media (max-width: 900px), (pointer: coarse) { #controles-movil { display: flex; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Robot Jungle</title>
+<style>
+* { touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #050a05; font-family: 'Courier New', monospace; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 600px; overflow: hidden; }
+#wrap { position: relative; width: 800px; }
+canvas { display: block; border: 3px solid #1a331a; border-radius: 8px; box-shadow: 0 0 40px rgba(0,200,100,0.15); max-width: 100%; }
+#hud { position: absolute; top: 10px; left: 10px; right: 10px; display: none; pointer-events: none; justify-content: space-between; align-items: flex-start; }
+.hud-box { background: rgba(0,0,0,0.55); border: 1px solid rgba(100,220,120,0.4); border-radius: 6px; padding: 6px 10px; color: #fff; font-size: 9px; line-height: 1.8; }
+#barra-bat { width: 80px; height: 6px; background: #333; border-radius: 3px; margin-top: 3px; }
+#fill-bat { height: 6px; border-radius: 3px; background: #2ecc71; width: 0%; transition: width 0.2s, background 0.3s; }
+.overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.82); color: #fff; text-align: center; border-radius: 6px; }
+.overlay h1 { font-size: 26px; color: #f1c40f; letter-spacing: 3px; margin-bottom: 8px; }
+.overlay p { font-size: 10px; color: #aaa; margin-bottom: 4px; }
+.blink { animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+#msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 14px; font-weight: bold; pointer-events: none; display: none; text-align: center; text-shadow: 2px 2px #000; border-radius: 6px; padding: 8px 16px; }
+#ctrl { position: absolute; bottom: 10px; left: 0; right: 0; display: none; justify-content: space-between; padding: 0 16px; }
+.btn { width: 60px; height: 60px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 18px; pointer-events: auto; }
+@media (max-width: 820px) { #wrap { width: 100%; } }
+@media (pointer: coarse) { #ctrl { display: flex !important; } }
+</style>
 </head>
 <body>
+<div id="wrap">
+  <canvas id="c"></canvas>
 
-<div id="ui-overlay">
-    <div id="hud" class="stats" style="display: none;">
-        ❤️ VIDAS: <span id="v">3</span> | 🔋 BATERÍA: <span id="b">0</span>% | 📍 <span id="fase-txt">FASE 1</span>
+  <div id="hud" style="display:none;flex-direction:row;">
+    <div class="hud-box">
+      ❤️ <span id="vidas">3</span> &nbsp; | &nbsp; 🏆 FASE <span id="fase">1</span>
     </div>
-    
-    <div id="msg-dano" class="mensaje-aviso" style="color: #ff4444; text-shadow: 3px 3px #000;">¡ROBOT ESCACHARRADO!</div>
-    <div id="msg-vida" class="mensaje-aviso" style="color: #2ecc71; text-shadow: 3px 3px #000;">¡VIDA EXTRA!</div>
-    <div id="msg-meta" class="mensaje-aviso" style="color: #f1c40f; text-shadow: 3px 3px #000;">¡TALLER ALCANZADO!<br><br><span style="font-size:10px">REPARANDO... FASE SIGUIENTE</span></div>
+    <div class="hud-box" style="text-align:right;">
+      🔋 <span id="bpct">0</span>%
+      <div id="barra-bat"><div id="fill-bat"></div></div>
+    </div>
+  </div>
 
-    <div id="inicio" class="pantalla-completa" onclick="iniciarJuego()">
-        <h1 style="color: #f1c40f; font-size: 24px; margin-bottom: 20px;">ROBOT JUNGLE</h1>
-        <p class="parpadeo" style="color: #2ecc71;">TOCA O PULSA ENTER</p>
+  <div id="overlay" class="overlay">
+    <h1>ROBOT JUNGLE</h1>
+    <p style="color:#2ecc71;font-size:13px;margin:8px 0 4px;">El robot perdido en la selva</p>
+    <p style="color:#aaa;font-size:9px;">← → mover &nbsp;|&nbsp; ↑ / Space saltar &nbsp;|&nbsp; pisa a los enemigos</p>
+    <br>
+    <p class="blink" style="color:#f1c40f;font-size:11px;cursor:pointer;" onclick="start()">[ PULSA ENTER O TOCA AQUÍ ]</p>
+  </div>
+
+  <div id="msg"></div>
+
+  <div id="ctrl">
+    <div style="display:flex;gap:12px;">
+      <div class="btn" id="bL">◀</div>
+      <div class="btn" id="bR">▶</div>
     </div>
+    <div class="btn" id="bU">▲</div>
+  </div>
 </div>
-
-<div id="controles-movil">
-    <div style="display: flex; gap: 20px;">
-        <div id="btnIzq" class="btn">◀</div>
-        <div id="btnDer" class="btn">▶</div>
-    </div>
-    <div id="btnSalto" class="btn" style="background: rgba(76, 175, 80, 0.4);">UP</div>
-</div>
-
-<canvas id="canvas"></canvas>
 
 <script>
-const cvs = document.getElementById("canvas");
-const ctx = cvs.getContext("2d");
+const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
 cvs.width = 800; cvs.height = 400;
 
-const teclas = {}; 
-let juegoActivo = false, frames = 0, camX = 0, vidas = 3, bateria = 0, faseActual = 1;
-let shakeFrames = 0, flashVerde = 0;
-
-const robot = {
-    x: 50, y: 300, w: 35, h: 45, vx: 0, vy: 0,
-    velocidad: 0.8, friccion: 0.85, salto: 13, gravedad: 0.6, enSuelo: false
+const K = {}, setupBtn = (id, key) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('touchstart', e => { e.preventDefault(); K[key] = true; }, {passive:false});
+  el.addEventListener('touchend', e => { e.preventDefault(); K[key] = false; }, {passive:false});
 };
+setupBtn('bL','ArrowLeft'); setupBtn('bR','ArrowRight'); setupBtn('bU','ArrowUp');
+window.addEventListener('keydown', e => { K[e.code] = true; if(e.code==='Enter' && !active) start(); });
+window.addEventListener('keyup', e => K[e.code] = false);
+document.getElementById('overlay').addEventListener('click', start);
 
-let plataformas = [], enemigos = [], baterias = [], nubes = [], peces = [], meta = {x: 0, y: 0, w: 100, h: 120};
+let active=false, fr=0, camX=0, vidas=3, bat=0, fase=1;
+let shake=0, flash=0, particles=[], stars=[];
+const R = { x:50, y:200, w:34, h:44, vx:0, vy:0, spd:0.9, fri:0.83, jmp:12.5, grav:0.58, land:false, dir:1, frame:0 };
+let platforms=[], enemies=[], batteries=[], clouds=[], fish=[], meta={x:0,y:0,w:90,h:110};
 
-// Vincular botones móviles
-const setupBtn = (id, key) => {
-    const el = document.getElementById(id);
-    el.addEventListener("touchstart", (e) => { e.preventDefault(); teclas[key] = true; }, {passive: false});
-    el.addEventListener("touchend", (e) => { e.preventDefault(); teclas[key] = false; }, {passive: false});
-};
-setupBtn("btnIzq", "ArrowLeft"); setupBtn("btnDer", "ArrowRight"); setupBtn("btnSalto", "ArrowUp");
+for(let i=0;i<60;i++) stars.push({x:Math.random()*3000, y:Math.random()*120, s:Math.random()*1.5+0.5, t:Math.random()*Math.PI*2});
 
-window.addEventListener("keydown", e => { teclas[e.code] = true; if(e.code === "Enter" && !juegoActivo) iniciarJuego(); });
-window.addEventListener("keyup", e => teclas[e.code] = false);
-
-// TU LÓGICA ORIGINAL DE CREAR MUNDO
-function crearMundo(fase) {
-    const largo = 2500 + (fase * 1000);
-    plataformas = [{x: 0, y: 350, w: 600}];
-    enemigos = []; baterias = [];
-    let xCurr = 700;
-    while(xCurr < largo) {
-        let gap = 100 + Math.random() * 100, w = 200 + Math.random() * 300, y = 250 + Math.random() * 100;
-        plataformas.push({x: xCurr, y: y, w: w});
-        if(Math.random() > 0.5) baterias.push({x: xCurr + w/2, y: y-40, recolectada: false});
-        if(Math.random() > 0.6) {
-            let tipo = Math.random() > 0.5 ? 'jabali' : 'serpiente';
-            enemigos.push({x: xCurr + 50, y: y-35, w: 40, h: 35, d: 1, limiteL: xCurr, limiteR: xCurr+w-40, tipo: tipo});
-        }
-        xCurr += w + gap;
+function buildWorld(f) {
+  const L = 2600 + f*900;
+  platforms = [{x:0,y:340,w:620,type:'grass'}];
+  enemies=[]; batteries=[];
+  let cx = 700;
+  while(cx < L) {
+    let gap=90+Math.random()*110, w=180+Math.random()*280, y=240+Math.random()*95;
+    let type = Math.random()>0.5?'grass':'stone';
+    platforms.push({x:cx, y, w, type});
+    if(Math.random()>0.4) batteries.push({x:cx+w/2-10, y:y-45, got:false, bob:Math.random()*Math.PI*2});
+    if(Math.random()>0.55) {
+      let t = Math.random()>0.5?'boar':'snake';
+      enemies.push({x:cx+50, y:y-38, w:40, h:38, d:1, lL:cx, lR:cx+w-42, t, hp:1, hit:0});
     }
-    let ultimaP = plataformas[plataformas.length - 1];
-    meta.x = ultimaP.x + ultimaP.w - 120; meta.y = ultimaP.y - meta.h;
-    nubes = []; peces = [];
-    for(let i=0; i<15; i++) {
-        nubes.push({x: Math.random()*largo, y: Math.random()*100, v: 0.5 + Math.random()});
-        peces.push({x: Math.random()*largo, y: 375, v: 1 + Math.random()});
+    cx += w + gap;
+  }
+  let lp = platforms[platforms.length-1];
+  meta.x = lp.x+lp.w-100; meta.y = lp.y-meta.h;
+  clouds=[]; fish=[];
+  for(let i=0;i<18;i++) clouds.push({x:Math.random()*L, y:20+Math.random()*80, s:0.4+Math.random()*0.6, w:60+Math.random()*40});
+  for(let i=0;i<20;i++) fish.push({x:Math.random()*L, y:372+Math.random()*12, v:0.8+Math.random()*1.2, s:Math.random()>0.5?1:-1});
+}
+
+function start() {
+  active=true; vidas=3; bat=0; camX=0; fase=1;
+  R.x=50; R.y=150; R.vx=0; R.vy=0; particles=[];
+  buildWorld(fase);
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('hud').style.display='flex';
+  updateUI(); loop();
+}
+
+function updateUI() {
+  document.getElementById('vidas').innerText = vidas;
+  document.getElementById('fase').innerText = fase;
+  document.getElementById('bpct').innerText = bat;
+  const f = document.getElementById('fill-bat');
+  f.style.width = bat+'%';
+  f.style.background = bat>=80?'#f1c40f':bat>=50?'#2ecc71':'#3498db';
+}
+
+function showMsg(txt, color, dur=1200) {
+  const m = document.getElementById('msg');
+  m.innerHTML = txt; m.style.display='block'; m.style.color=color;
+  m.style.background = color==='#2ecc71'?'rgba(46,204,113,0.2)':'rgba(255,50,50,0.2)';
+  setTimeout(()=>m.style.display='none', dur);
+}
+
+function spawnParticles(x, y, color, n=12) {
+  for(let i=0;i<n;i++) {
+    let a=Math.random()*Math.PI*2, sp=2+Math.random()*4;
+    particles.push({x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-2, life:1, color});
+  }
+}
+
+function onDamage() {
+  shake=25; spawnParticles(R.x+17, R.y+22, '#ff4444', 16);
+  showMsg('¡ESCACHARRADO!', '#ff4444');
+  vidas--; updateUI(); R.vx=0;
+  if(vidas<=0) { active=false; setTimeout(()=>{document.getElementById('overlay').innerHTML='<h1>GAME OVER</h1><p style="color:#e74c3c;margin:8px 0">El robot no lo logró...</p><br><p class="blink" style="color:#aaa;font-size:10px;cursor:pointer;" onclick="start()">[ REINTENTAR ]</p>'; document.getElementById('overlay').style.display='flex';},800); }
+}
+
+function nextPhase() {
+  active=false;
+  showMsg('🏭 TALLER ALCANZADO!<br><span style="font-size:9px">Reparando... fase '+(fase+1)+'</span>', '#f1c40f', 2200);
+  setTimeout(()=>{ fase++; R.x=50; R.y=150; R.vx=0; R.vy=0; particles=[];
+    buildWorld(fase); updateUI(); active=true; loop(); }, 2300);
+}
+
+let raf;
+function loop() {
+  if(!active) return;
+  cancelAnimationFrame(raf);
+  update(); draw();
+  raf = requestAnimationFrame(loop);
+}
+
+function update() {
+  if(K['ArrowRight']||K['KeyD']) { R.vx+=R.spd; R.dir=1; }
+  if(K['ArrowLeft']||K['KeyA']) { R.vx-=R.spd; R.dir=-1; }
+  R.vx *= R.fri;
+  R.x += R.vx;
+  if((K['ArrowUp']||K['Space']||K['KeyW'])&&R.land) { R.vy=-R.jmp; R.land=false; spawnParticles(R.x+17, R.y+R.h, '#aaccaa', 6); }
+  R.vy += R.grav; R.y += R.vy;
+  R.land = false;
+  for(let p of platforms) {
+    if(R.x+R.w>p.x&&R.x<p.x+p.w&&R.y+R.h>p.y&&R.y+R.h<p.y+18&&R.vy>=0) {
+      R.y=p.y-R.h; R.vy=0; R.land=true;
     }
-}
+  }
+  if(R.land&&Math.abs(R.vx)>0.5) R.frame=(R.frame+1)%12; else if(!R.land) R.frame=0;
 
-function iniciarJuego() {
-    juegoActivo = true; vidas = 3; bateria = 0; camX = 0; faseActual = 1;
-    robot.x = 50; robot.y = 100; robot.vx = 0; robot.vy = 0;
-    crearMundo(faseActual);
-    document.getElementById("inicio").style.display = "none";
-    document.getElementById("hud").style.display = "block";
-    actualizarUI();
-    requestAnimationFrame(bucle);
-}
+  if(R.x<meta.x+meta.w&&R.x+R.w>meta.x&&R.y<meta.y+meta.h&&R.y+R.h>meta.y) nextPhase();
 
-function actualizarUI() {
-    document.getElementById("v").innerText = vidas;
-    document.getElementById("b").innerText = bateria;
-    document.getElementById("fase-txt").innerText = "FASE " + faseActual;
-}
-
-// TUS FUNCIONES DE EVENTOS ORIGINALES
-function activarDano() {
-    shakeFrames = 30;
-    document.getElementById("msg-dano").style.display = "block";
-    setTimeout(() => document.getElementById("msg-dano").style.display = "none", 1000);
-    vidas--; 
-    actualizarUI();
-    robot.vx = 0;
-    if(vidas <= 0) setTimeout(() => location.reload(), 1000);
-}
-
-function pasarFase() {
-    juegoActivo = false;
-    document.getElementById("msg-meta").style.display = "block";
-    setTimeout(() => {
-        faseActual++;
-        document.getElementById("msg-meta").style.display = "none";
-        robot.x = 50; robot.y = 100; robot.vx = 0; robot.vy = 0;
-        crearMundo(faseActual);
-        actualizarUI();
-        juegoActivo = true;
-        requestAnimationFrame(bucle);
-    }, 2000);
-}
-
-// MEJORA DEL MOTOR (Delta Time para suavidad)
-let lastTime = 0;
-function bucle(timestamp) {
-    if(!juegoActivo) return;
-    
-    // Si el tiempo entre frames es muy largo (lag), lo limitamos
-    let dt = timestamp - lastTime;
-    if (dt > 100) dt = 16; 
-    lastTime = timestamp;
-
-    actualizar();
-    dibujar();
-    requestAnimationFrame(bucle);
-}
-
-function actualizar() {
-    if (teclas["ArrowRight"]) robot.vx += robot.velocidad;
-    if (teclas["ArrowLeft"]) robot.vx -= robot.velocidad;
-    robot.vx *= robot.friccion;
-    robot.x += robot.vx;
-    if ((teclas["ArrowUp"] || teclas["Space"]) && robot.enSuelo) { robot.vy = -robot.salto; robot.enSuelo = false; }
-    robot.vy += robot.gravedad;
-    robot.y += robot.vy;
-
-    robot.enSuelo = false;
-    plataformas.forEach(p => {
-        if (robot.x + robot.w > p.x && robot.x < p.x + p.w && robot.y + robot.h > p.y && robot.y + robot.h < p.y + 20 && robot.vy >= 0) {
-            robot.y = p.y - robot.h; robot.vy = 0; robot.enSuelo = true;
-        }
-    });
-
-    if (robot.x < meta.x + meta.w && robot.x + robot.w > meta.x && robot.y < meta.y + meta.h && robot.y + robot.h > meta.y) {
-        pasarFase();
+  for(let i=enemies.length-1;i>=0;i--) {
+    let en=enemies[i];
+    en.x+=2.2*en.d; if(en.x>en.lR||en.x<en.lL) en.d*=-1;
+    if(en.hit>0) en.hit--;
+    if(R.x<en.x+en.w&&R.x+R.w>en.x&&R.y<en.y+en.h&&R.y+R.h>en.y) {
+      if(R.vy>1.5&&R.y+R.h<en.y+en.h*0.5+6) {
+        spawnParticles(en.x+20, en.y+19, en.t==='boar'?'#8B5E3C':'#2d8c3c', 14);
+        enemies.splice(i,1); R.vy=-9;
+      } else if(en.hit===0) { onDamage(); en.hit=40; R.x+=R.dir<0?80:-80; }
     }
+  }
 
-    enemigos.forEach(en => {
-        en.x += 2 * en.d; if(en.x > en.limiteR || en.x < en.limiteL) en.d *= -1;
-        if(robot.x < en.x + en.w && robot.x + robot.w > en.x && robot.y < en.y + en.h && robot.y + robot.h > en.y) {
-            if(robot.vy > 0) { enemigos.splice(enemigos.indexOf(en), 1); robot.vy = -10; }
-            else { activarDano(); robot.x -= 120; }
-        }
-    });
+  for(let b of batteries) {
+    b.bob+=0.08;
+    if(!b.got&&R.x<b.x+18&&R.x+R.w>b.x&&R.y<b.y+22&&R.y+R.h>b.y) {
+      b.got=true; bat=Math.min(100,bat+20);
+      spawnParticles(b.x+9, b.y+10, '#f1c40f', 10);
+      if(bat>=100) { vidas++; bat=0; flash=50; showMsg('⚡ VIDA EXTRA!', '#2ecc71'); }
+      updateUI();
+    }
+  }
 
-    baterias.forEach(b => {
-        if(!b.recolectada && robot.x < b.x + 20 && robot.x + robot.w > b.x && robot.y < b.y + 20 && robot.y + robot.h > b.y) {
-            b.recolectada = true; bateria += 20;
-            if(bateria >= 100) { 
-                vidas++; bateria = 0; flashVerde = 40;
-                document.getElementById("msg-vida").style.display = "block";
-                setTimeout(() => document.getElementById("msg-vida").style.display = "none", 1500);
-            }
-            actualizarUI();
-        }
-    });
+  for(let i=particles.length-1;i>=0;i--) {
+    let p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.18; p.life-=0.035;
+    if(p.life<=0) particles.splice(i,1);
+  }
 
-    camX = robot.x - 200; if(camX < 0) camX = 0;
-    if(robot.y > 400) { activarDano(); robot.y = 0; robot.x -= 150; }
-    frames++;
+  camX = R.x - 200; if(camX<0) camX=0;
+  if(R.y>420) { onDamage(); R.y=0; R.x-=120; }
+  fr++;
 }
 
-function dibujar() {
-    ctx.save();
-    if(shakeFrames > 0) { ctx.translate((Math.random()-0.5)*10, (Math.random()-0.5)*10); shakeFrames--; }
-    ctx.clearRect(0, 0, cvs.width, cvs.height);
+function drawRobot() {
+  const rx=R.x, ry=R.y, d=R.dir;
+  const walkCycle = R.land&&Math.abs(R.vx)>0.5 ? Math.sin(fr*0.4)*6 : 0;
+  
+  // antena
+  ctx.fillStyle='#546e7a';
+  ctx.fillRect(rx+12, ry-14, 4, 10);
+  ctx.beginPath(); ctx.arc(rx+14, ry-16, 5, 0, Math.PI*2);
+  ctx.fillStyle='#ff1744'; ctx.fill();
+  ctx.strokeStyle='rgba(255,23,68,0.4)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(rx+14, ry-16, 8, 0, Math.PI*2); ctx.stroke();
 
-    // Nubes y Agua originales
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    nubes.forEach(n => { let nx = (n.x - camX * 0.3) % 2000; ctx.beginPath(); ctx.arc(nx, n.y, 20, 0, 7); ctx.arc(nx+15, n.y-10, 20, 0, 7); ctx.fill(); });
-    let wave = Math.sin(frames * 0.05) * 5;
-    ctx.fillStyle = "#003366"; ctx.fillRect(0, 370 + wave, cvs.width, 50);
+  // cuerpo
+  const grad = ctx.createLinearGradient(rx, ry, rx+R.w, ry);
+  grad.addColorStop(0,'#78909c'); grad.addColorStop(0.5,'#b0bec5'); grad.addColorStop(1,'#78909c');
+  ctx.fillStyle=grad;
+  roundRect(ctx, rx, ry, R.w, R.h-12, 6); ctx.fill();
 
-    ctx.translate(-camX, 0);
+  // detalle torso
+  ctx.fillStyle='rgba(0,0,0,0.15)';
+  ctx.fillRect(rx+3, ry+20, R.w-6, 2);
+  ctx.fillRect(rx+3, ry+26, R.w-6, 2);
 
-    // Taller original
-    ctx.fillStyle = "#455a64"; ctx.fillRect(meta.x, meta.y, meta.w, meta.h);
-    ctx.fillStyle = "#263238"; ctx.fillRect(meta.x + 20, meta.y + 40, 60, 80);
-    ctx.fillStyle = frames % 20 < 10 ? "red" : "maroon"; ctx.beginPath(); ctx.arc(meta.x + 50, meta.y + 20, 8, 0, 7); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.font = "8px 'Press Start 2P'"; ctx.fillText("TALLER", meta.x + 15, meta.y - 10);
+  // visor
+  ctx.fillStyle='#0d47a1';
+  roundRect(ctx, rx+5, ry+5, R.w-10, 12, 3); ctx.fill();
+  ctx.fillStyle='#00e5ff';
+  for(let i=0;i<3;i++) ctx.fillRect(rx+8+i*8, ry+9, 5, 4);
+  ctx.fillStyle='rgba(0,229,255,0.3)';
+  roundRect(ctx, rx+5, ry+5, R.w-10, 12, 3); ctx.fill();
 
-    plataformas.forEach(p => { ctx.fillStyle = "#2ecc71"; ctx.fillRect(p.x, p.y, p.w, 10); ctx.fillStyle = "#3e2723"; ctx.fillRect(p.x, p.y+10, p.w, 400); });
-    baterias.forEach(b => { if(!b.recolectada) { ctx.fillStyle = "#f1c40f"; ctx.fillRect(b.x, b.y, 20, 25); ctx.fillStyle = "#fff"; ctx.fillText("+", b.x+5, b.y+18); } });
+  // brazos
+  ctx.fillStyle='#546e7a';
+  ctx.fillRect(rx-7, ry+8, 7, 18);
+  ctx.fillRect(rx+R.w, ry+8, 7, 18);
 
-    // TUS ANIMALES ORIGINALES
-    enemigos.forEach(en => {
-        if(en.tipo === 'jabali') {
-            ctx.fillStyle = "#4e342e"; ctx.beginPath(); ctx.ellipse(en.x+20, en.y+20, 22, 15, 0, 0, 7); ctx.fill();
-            ctx.fillStyle = "#fff"; ctx.fillRect(en.d>0?en.x+35:en.x-5, en.y+20, 10, 4);
-        } else {
-            ctx.fillStyle = "#1b5e20";
-            for(let i=0; i<6; i++) { ctx.beginPath(); ctx.arc(en.x + (i*8), en.y + 10 + Math.sin(frames*0.15 + i)*5, 7-i, 0, 7); ctx.fill(); }
-        }
-    });
+  // piernas
+  const lOff = walkCycle;
+  ctx.fillStyle='#455a64';
+  roundRect(ctx, rx+4, ry+R.h-14, 10, 14+lOff, 3); ctx.fill();
+  roundRect(ctx, rx+R.w-14, ry+R.h-14, 10, 14-lOff, 3); ctx.fill();
 
-    // TU ROBOT ORIGINAL (Antena Roja + Visor)
-    let walk = Math.sin(frames * 0.3) * 10;
-    ctx.fillStyle = "#90a4ae"; ctx.fillRect(robot.x, robot.y, robot.w, robot.h-10);
-    ctx.fillStyle = "#00e5ff"; ctx.fillRect(robot.x+18, robot.y+8, 12, 6);
-    ctx.fillStyle = "#37474f";
-    ctx.fillRect(robot.x+4, robot.y+35, 9, 10 + (Math.abs(robot.vx)>0.5?walk:0));
-    ctx.fillRect(robot.x+22, robot.y+35, 9, 10 - (Math.abs(robot.vx)>0.5?walk:0));
-    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(robot.x+10, robot.y-5, 4, 0, 7); ctx.fill();
+  // pies
+  ctx.fillStyle='#37474f';
+  ctx.fillRect(rx+2+(d>0?0:0), ry+R.h-2+lOff, 12, 5);
+  ctx.fillRect(rx+R.w-14, ry+R.h-2-lOff, 12, 5);
 
-    // HAZ VERDE ORIGINAL
-    if(flashVerde > 0) { ctx.fillStyle = `rgba(46, 204, 113, ${flashVerde/40})`; ctx.fillRect(robot.x - 20, 0, robot.w + 40, 400); flashVerde--; }
+  // sombra
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.ellipse(rx+R.w/2, ry+R.h+3, 18, 5, 0, 0, Math.PI*2); ctx.fill();
+}
 
+function drawBoar(en) {
+  const x=en.x, y=en.y, d=en.d, run=Math.sin(fr*0.25)*4;
+  ctx.fillStyle='#5d4037';
+  ctx.beginPath(); ctx.ellipse(x+20, y+18, 20, 13, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#795548';
+  ctx.beginPath(); ctx.ellipse(x+(d>0?30:10), y+14, 10, 8, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; 
+  if(d>0) { ctx.fillRect(x+36, y+17, 8, 4); ctx.fillRect(x+38, y+15, 5, 3); }
+  else { ctx.fillRect(x-4, y+17, 8, 4); ctx.fillRect(x-3, y+15, 5, 3); }
+  ctx.fillStyle='#333';
+  ctx.beginPath(); ctx.arc(x+(d>0?35:5), y+13, 2.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#4e342e';
+  ctx.fillRect(x+6, y+28, 7, 8+run);
+  ctx.fillRect(x+27, y+28, 7, 8-run);
+  ctx.fillRect(x+14, y+28, 7, 8-run);
+  ctx.fillRect(x+20, y+28, 7, 8+run);
+}
+
+function drawSnake(en) {
+  const x=en.x, y=en.y;
+  const segs=7;
+  for(let i=segs;i>=0;i--) {
+    const t = fr*0.15 + i*0.45;
+    const sx = x + i*6 + (en.d<0?36-i*6:0);
+    const sy = y+15 + Math.sin(t)*5;
+    const r = i===0?9:8-i*0.5;
+    ctx.fillStyle = i%2===0?'#2e7d32':'#388e3c';
+    ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
+    if(i===0) {
+      ctx.fillStyle='#f9a825';
+      ctx.beginPath(); ctx.arc(sx+(en.d>0?4:-4), sy-2, 2.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='#e53935'; ctx.fillRect(sx+(en.d>0?9:-3), sy+2, 6, 2);
+    }
+  }
+}
+
+function drawWorkshop() {
+  const mx=meta.x, my=meta.y;
+  ctx.fillStyle='#37474f'; roundRect(ctx, mx, my, meta.w, meta.h, 4); ctx.fill();
+  ctx.fillStyle='#263238'; roundRect(ctx, mx+12, my+45, 66, 65, 3); ctx.fill();
+  ctx.fillStyle='#546e7a'; ctx.fillRect(mx, my+55, meta.w, 10);
+  ctx.fillStyle='#00b0ff';
+  ctx.fillRect(mx+18, my+52, 20, 20);
+  ctx.fillRect(mx+50, my+52, 20, 20);
+  ctx.fillStyle='rgba(0,176,255,0.2)';
+  ctx.fillRect(mx+18, my+52, 20, 20);
+  ctx.fillStyle = fr%20<10?'#f44336':'#b71c1c';
+  ctx.beginPath(); ctx.arc(mx+45, my+18, 9, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(244,67,54,0.4)'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.arc(mx+45, my+18, 15, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle='#90a4ae'; ctx.font='7px Courier New'; ctx.textAlign='center';
+  ctx.fillText('⚙ TALLER ⚙', mx+meta.w/2, my-6);
+  ctx.textAlign='left';
+  ctx.fillStyle='#78909c';
+  for(let i=0;i<4;i++) ctx.fillRect(mx+2+i*24, my, 4, 14);
+}
+
+function drawPlatform(p) {
+  if(p.type==='stone') {
+    const g = ctx.createLinearGradient(p.x, p.y, p.x, p.y+20);
+    g.addColorStop(0,'#90a4ae'); g.addColorStop(1,'#546e7a');
+    ctx.fillStyle=g;
+    roundRect(ctx, p.x, p.y, p.w, 14, 3); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.15)';
+    for(let i=0;i<p.w;i+=32) ctx.fillRect(p.x+i, p.y, 30, 4);
+  } else {
+    ctx.fillStyle='#388e3c';
+    roundRect(ctx, p.x, p.y, p.w, 10, 4); ctx.fill();
+    ctx.fillStyle='#2e7d32';
+    ctx.fillRect(p.x, p.y+8, p.w, 6);
+    ctx.fillStyle='#4caf50';
+    for(let i=0;i<p.w;i+=16) {
+      ctx.beginPath();
+      ctx.moveTo(p.x+i, p.y);
+      ctx.quadraticCurveTo(p.x+i+8, p.y-7, p.x+i+16, p.y);
+      ctx.fill();
+    }
+    ctx.fillStyle='#3e2723';
+    ctx.fillRect(p.x, p.y+10, p.w, 80);
+  }
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath(); c.moveTo(x+r, y);
+  c.lineTo(x+w-r, y); c.quadraticCurveTo(x+w, y, x+w, y+r);
+  c.lineTo(x+w, y+h-r); c.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  c.lineTo(x+r, y+h); c.quadraticCurveTo(x, y+h, x, y+h-r);
+  c.lineTo(x, y+r); c.quadraticCurveTo(x, y, x+r, y);
+  c.closePath();
+}
+
+function draw() {
+  ctx.save();
+  if(shake>0) { ctx.translate((Math.random()-0.5)*8,(Math.random()-0.5)*8); shake--; }
+
+  // SKY GRADIENT
+  const sky = ctx.createLinearGradient(0,0,0,400);
+  sky.addColorStop(0,'#0d1b0e'); sky.addColorStop(0.5,'#1b4a1b'); sky.addColorStop(1,'#0a2e0a');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,800,400);
+
+  // stars parallax
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  for(let s of stars) {
+    let sx = (s.x - camX*0.08 + 3000) % 800;
+    let flicker = 0.5 + 0.5*Math.sin(fr*0.05+s.t);
+    ctx.globalAlpha = flicker*0.7;
+    ctx.beginPath(); ctx.arc(sx, s.y, s.s, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // moon
+  let moonX = (300 - camX*0.05 + 8000) % 800;
+  ctx.fillStyle='#fff9c4';
+  ctx.beginPath(); ctx.arc(moonX, 55, 22, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1b4a1b';
+  ctx.beginPath(); ctx.arc(moonX+8, 50, 18, 0, Math.PI*2); ctx.fill();
+
+  // bg jungle silhouette (parallax)
+  ctx.fillStyle='#0a1f0a';
+  for(let i=0;i<30;i++) {
+    let tx = ((i*95 - camX*0.2)+9000)%900 - 40;
+    let th = 80+Math.sin(i*1.3)*50;
+    ctx.beginPath(); ctx.moveTo(tx, 400); ctx.lineTo(tx, 310-th);
+    ctx.quadraticCurveTo(tx+20, 260-th, tx+40, 310-th);
+    ctx.lineTo(tx+40, 400); ctx.fill();
+  }
+
+  // mid jungle
+  ctx.fillStyle='#122b12';
+  for(let i=0;i<20;i++) {
+    let tx = ((i*140 - camX*0.45)+6000)%1000 - 50;
+    let th = 60+Math.sin(i*2.1)*35;
+    ctx.beginPath(); ctx.moveTo(tx, 400); ctx.lineTo(tx+10, 355-th);
+    ctx.quadraticCurveTo(tx+30, 320-th, tx+50, 355-th);
+    ctx.lineTo(tx+60, 400); ctx.fill();
+  }
+
+  // clouds
+  ctx.fillStyle='rgba(255,255,255,0.08)';
+  for(let cl of clouds) {
+    let cx2 = (cl.x - camX*0.25 + 6000)%820;
+    ctx.beginPath(); ctx.ellipse(cx2, cl.y, cl.w, 14, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx2+20, cl.y-10, cl.w*0.6, 12, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  // water
+  ctx.save(); ctx.translate(-camX, 0);
+  const wg = ctx.createLinearGradient(0,370,0,400);
+  wg.addColorStop(0,'#003366'); wg.addColorStop(1,'#001a33');
+  ctx.fillStyle=wg; ctx.fillRect(camX, 370, 800, 30);
+  ctx.fillStyle='rgba(100,180,255,0.12)';
+  for(let i=0;i<8;i++) {
+    let wx = camX+i*110+(Math.sin(fr*0.04+i)*20);
+    ctx.fillRect(wx, 374+Math.sin(fr*0.05+i)*3, 70, 2);
+  }
+  // fish
+  for(let f of fish) {
+    f.x += f.v*f.s;
+    if(f.x>camX+900) f.x=camX-20;
+    if(f.x<camX-20) f.x=camX+900;
+    ctx.fillStyle='rgba(100,180,255,0.5)';
+    ctx.save(); ctx.translate(f.x, f.y); if(f.s<0) ctx.scale(-1,1);
+    ctx.beginPath(); ctx.ellipse(0,0,6,3,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-6,0); ctx.lineTo(-10,4); ctx.lineTo(-10,-4); ctx.fill();
     ctx.restore();
+  }
+  ctx.restore();
+
+  // WORLD
+  ctx.save(); ctx.translate(-camX, 0);
+
+  platforms.forEach(p => drawPlatform(p));
+  drawWorkshop();
+
+  // batteries
+  for(let b of batteries) {
+    if(!b.got) {
+      b.bob+=0.05;
+      const by2 = b.y + Math.sin(b.bob)*4;
+      ctx.fillStyle='#f57f17'; roundRect(ctx, b.x, by2, 18, 26, 3); ctx.fill();
+      ctx.fillStyle='#fdd835'; ctx.fillRect(b.x+5, by2-4, 8, 5);
+      ctx.fillStyle='#fff176';
+      for(let i=0;i<3;i++) ctx.fillRect(b.x+4, by2+4+i*6, 10, 3);
+      ctx.strokeStyle='rgba(255,235,59,0.5)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(b.x+9, by2+13, 14, 0, Math.PI*2); ctx.stroke();
+    }
+  }
+
+  enemies.forEach(en => {
+    ctx.globalAlpha = en.hit>0?0.5:1;
+    if(en.t==='boar') drawBoar(en); else drawSnake(en);
+    ctx.globalAlpha=1;
+  });
+
+  drawRobot();
+
+  // particles
+  for(let p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3*p.life, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  if(flash>0) {
+    ctx.fillStyle=`rgba(46,204,113,${flash/60})`;
+    ctx.fillRect(R.x-25, 0, R.w+50, 400);
+    flash--;
+  }
+
+  ctx.restore();
+  ctx.restore();
 }
 </script>
 </body>
 </html>
+
