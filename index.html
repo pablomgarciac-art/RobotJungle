@@ -14,7 +14,7 @@ html, body {
   font-family: 'Courier New', monospace; 
   display: flex; 
   flex-direction: column; 
-  justify-content: center; /* Centrado vertical */
+  justify-content: center;
   align-items: center; 
 }
 #game-container {
@@ -222,6 +222,10 @@ html, body {
         <span class="hud-label">❤️ VIDAS</span>
         <span class="hud-val" id="vidas">❤️❤️❤️</span>
       </div>
+      <div class="hud-box" style="text-align:center; border-color: rgba(155,89,182,0.6);">
+        <span class="hud-label">🔫 MUNICIÓN</span>
+        <span class="hud-val" id="ammo" style="color:#bb8fce;">0</span>
+      </div>
       <div class="hud-box" style="text-align:center;">
         <span class="hud-label">🔋 BATERÍA</span>
         <span class="hud-val" id="bpct">100%</span>
@@ -245,7 +249,10 @@ html, body {
       <div class="btn-ctrl" id="bL">◀</div>
       <div class="btn-ctrl" id="bR">▶</div>
     </div>
-    <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.3); border-color:rgba(46,204,113,0.8);">▲</div>
+    <div style="display: flex; gap: 12px;">
+      <div class="btn-ctrl" id="bShoot" style="background:rgba(155,89,182,0.3); border-color:rgba(155,89,182,0.8);">💥</div>
+      <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.3); border-color:rgba(46,204,113,0.8);">▲</div>
+    </div>
   </div>
 </div>
 
@@ -388,6 +395,12 @@ function sfxFire() {
 }
 function sfxBird() {
   playTone(800,'sawtooth',0.08,0.15); playTone(600,'sawtooth',0.1,0.12,0.06);
+}
+function sfxShoot() {
+  playTone(600,'sawtooth',0.05,0.2); playTone(800,'square',0.06,0.18,0.03);
+}
+function sfxAmmo() {
+  playTone(523,'sine',0.08,0.25); playTone(659,'sine',0.08,0.25,0.08); playTone(784,'sine',0.1,0.25,0.16);
 }
 
 // ── MÚSICA AMBIENTAL ────────────────────────────────────────────────────────
@@ -568,8 +581,8 @@ function resize() {
 
 // ── CONTROLES ─────────────────────────────────────────────────────────────────
 const K = {};
-['bL','bR','bU'].forEach((id, i) => {
-  const keys = ['ArrowLeft','ArrowRight','ArrowUp'];
+['bL','bR','bU','bShoot'].forEach((id, i) => {
+  const keys = ['ArrowLeft','ArrowRight','ArrowUp','Shoot'];
   const el = document.getElementById(id); if (!el) return;
   el.addEventListener('touchstart', e => { e.preventDefault(); K[keys[i]] = true; unlockAudio(); }, { passive: false });
   el.addEventListener('touchend',   e => { e.preventDefault(); K[keys[i]] = false; }, { passive: false });
@@ -579,17 +592,25 @@ window.addEventListener('keydown', e => {
   K[e.code] = true;
   if (e.code === 'Enter' && !active) start();
   if (e.code === 'Space') e.preventDefault();
+  if (e.code === 'KeyE' || e.code === 'ControlLeft' || e.code === 'ControlRight') K['Shoot'] = true;
 });
-window.addEventListener('keyup', e => K[e.code] = false);
+window.addEventListener('keyup', e => {
+  K[e.code] = false;
+  if (e.code === 'KeyE' || e.code === 'ControlLeft' || e.code === 'ControlRight') K['Shoot'] = false;
+});
 
 // ── ESTADO ────────────────────────────────────────────────────────────────────
 let active = false, fr = 0, camX = 0, vidas = 3, bat = 100, fase = 1, score = 0;
+let ammo = 0;
 let shake = 0, flash = 0, invulnerable = 0;
+let shootCooldown = 0;
 let particles = [], stars = [], titleFr = 0, titleRaf, raf2;
 let scorePops = [];
 let distanceSigns = [];
 let sharks = [];
 let birds = [];
+let ammoBoxes = [];
+let robotProjectiles = [];
 
 const POINTS = { boar: 100, snake: 150, lion: 200, bear: 250, bird: 200, plant: 0 };
 
@@ -644,9 +665,10 @@ function drawTitleScreen() {
   ctx.font = '16px Courier New'; ctx.fillStyle = '#80cbc4'; ctx.fillText('El robot perdido en la selva', W / 2, 132);
   ctx.font = '11px Courier New'; ctx.fillStyle = 'rgba(180,220,180,0.75)';
   ctx.fillText('← → mover   |   ↑ / Space saltar   |   pisa a los enemigos', W / 2, 158);
+  ctx.fillText('E / Ctrl para disparar', W / 2, 178);
   let blink = Math.sin(titleFr * 0.08) > 0;
   ctx.font = 'bold 14px Courier New'; ctx.fillStyle = blink ? '#f1c40f' : 'rgba(241,196,15,0.3)';
-  ctx.fillText('[ PULSA ENTER O TOCA PARA JUGAR ]', W / 2, 188);
+  ctx.fillText('[ PULSA ENTER O TOCA PARA JUGAR ]', W / 2, 208);
   ctx.restore();
 }
 
@@ -693,13 +715,21 @@ function buildWorld(f) {
   distanceSigns = [];
   sharks = [];
   birds = [];
+  ammoBoxes = [];
+  robotProjectiles = [];
 
   let cx = 820;
   while (cx < L) {
     let gap = 100 + Math.random() * 120, w = 200 + Math.random() * 320, y = 290 + Math.random() * 110;
     let type = Math.random() > 0.5 ? 'grass' : 'stone';
     platforms.push({ x: cx, y, w, type });
+    
     if (Math.random() > 0.38) batteries.push({ x: cx + w / 2 - 10, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
+    
+    // Cajas de munición (30% de probabilidad)
+    if (Math.random() > 0.7) {
+      ammoBoxes.push({ x: cx + w / 2 - 12, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
+    }
 
     if (Math.random() > 0.5) {
       const types = ['boar', 'snake', 'lion', 'bear'], weights = [0.3, 0.25, 0.25, 0.2];
@@ -784,7 +814,7 @@ function start() {
   }
   cancelAnimationFrame(titleRaf);
   unlockAudio(); getAC();
-  active = true; vidas = 3; bat = 100; camX = 0; fase = 1; score = 0; invulnerable = 0;
+  active = true; vidas = 3; bat = 100; camX = 0; fase = 1; score = 0; ammo = 0; invulnerable = 0; shootCooldown = 0;
   R.x = 60; R.y = 200; R.vx = 0; R.vy = 0; particles = []; scorePops = [];
   buildWorld(fase);
   document.getElementById('hud').style.display = 'flex';
@@ -800,6 +830,7 @@ function updateUI() {
   document.getElementById('fase').innerText = fase;
   document.getElementById('bpct').innerText = bat + '%';
   document.getElementById('score').innerText = score;
+  document.getElementById('ammo').innerText = ammo;
   const f = document.getElementById('fill-bat');
   f.style.width = bat + '%';
   if (bat > 60) f.style.background = 'linear-gradient(90deg, #3498db, #2ecc71)';
@@ -903,6 +934,30 @@ function nextPhase() {
   }, 2600);
 }
 
+function shoot() {
+  if (ammo <= 0 || shootCooldown > 0) return;
+  
+  ammo--;
+  shootCooldown = 15;
+  sfxShoot();
+  updateUI();
+  
+  const dir = R.dir;
+  const startX = R.x + (dir > 0 ? R.w : 0);
+  const startY = R.y + R.h / 2;
+  
+  robotProjectiles.push({
+    x: startX,
+    y: startY,
+    vx: dir * 8,
+    vy: 0,
+    life: 1,
+    damage: 100
+  });
+  
+  spawnParticles(startX, startY, '#ffdd00', 6);
+}
+
 // ── GAME LOOP ─────────────────────────────────────────────────────────────────
 function loop() { 
   if (!active) return;
@@ -913,6 +968,9 @@ function loop() {
 function update() {
   if (invulnerable > 0) invulnerable--;
   if (flash > 0) flash--;
+  if (shootCooldown > 0) shootCooldown--;
+  
+  if (K['Shoot']) shoot();
   
   if (K['ArrowRight'] || K['KeyD']) { R.vx += R.spd; R.dir = 1; }
   if (K['ArrowLeft'] || K['KeyA']) { R.vx -= R.spd; R.dir = -1; }
@@ -927,6 +985,61 @@ function update() {
   }
   
   if (R.x < meta.x + meta.w && R.x + R.w > meta.x && R.y < meta.y + meta.h && R.y + R.h > meta.y) nextPhase();
+
+  // Proyectiles del robot
+  for (let i = robotProjectiles.length - 1; i >= 0; i--) {
+    let pr = robotProjectiles[i];
+    pr.x += pr.vx;
+    pr.y += pr.vy;
+    pr.life -= 0.01;
+    
+    if (pr.life <= 0 || pr.x < camX - 50 || pr.x > camX + 1150) {
+      robotProjectiles.splice(i, 1);
+      continue;
+    }
+    
+    // Colisión con enemigos
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      let en = enemies[j];
+      if (pr.x > en.x && pr.x < en.x + en.w && pr.y > en.y && pr.y < en.y + en.h) {
+        const pts = POINTS[en.t] || 100;
+        spawnParticles(en.x + 23, en.y + 22, { boar: '#8B5E3C', snake: '#2d8c3c', lion: '#c17f24', bear: '#5d4037' }[en.t] || '#888', 20);
+        addScore(pts, en.x + 23, en.y);
+        enemies.splice(j, 1);
+        robotProjectiles.splice(i, 1);
+        sfxStomp();
+        break;
+      }
+    }
+    
+    // Colisión con pájaros
+    if (robotProjectiles[i]) {
+      for (let j = birds.length - 1; j >= 0; j--) {
+        let b = birds[j];
+        if (pr.x > b.x && pr.x < b.x + b.w && pr.y > b.y && pr.y < b.y + b.h) {
+          addScore(200, b.x + 20, b.y);
+          spawnParticles(b.x + 20, b.y + 15, '#8B4513', 18);
+          birds.splice(j, 1);
+          robotProjectiles.splice(i, 1);
+          sfxStomp();
+          break;
+        }
+      }
+    }
+  }
+
+  // Cajas de munición
+  for (let box of ammoBoxes) {
+    box.bob += 0.08;
+    if (!box.got && R.x < box.x + 24 && R.x + R.w > box.x && R.y < box.y + 30 && R.y + R.h > box.y) {
+      box.got = true;
+      ammo += 5;
+      sfxAmmo();
+      spawnParticles(box.x + 12, box.y + 15, '#bb8fce', 15);
+      showMsg('🔫 ¡MUNICIÓN +5!', '#bb8fce', 1200);
+      updateUI();
+    }
+  }
 
   for (let shark of sharks) {
     shark.x += shark.speed * shark.direction;
@@ -1091,6 +1204,52 @@ function drawRobot() {
   ctx.fillStyle = '#37474f'; ctx.fillRect(rx + 2, ry + R.h + walkCycle, 14, 6); ctx.fillRect(rx + R.w - 16, ry + R.h - walkCycle, 14, 6);
   ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(rx + R.w / 2, ry + R.h + 8, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
   
+  ctx.restore();
+}
+
+function drawAmmoBox(box) {
+  const x = box.x, by = box.y + Math.sin(box.bob) * 5;
+  
+  // Caja morada brillante
+  ctx.fillStyle = '#8e44ad';
+  ctx.strokeStyle = '#f1c40f';
+  ctx.lineWidth = 3;
+  roundRect(ctx, x, by, 24, 28, 4);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Símbolo de munición
+  ctx.fillStyle = '#f1c40f';
+  ctx.font = 'bold 18px Courier New';
+  ctx.textAlign = 'center';
+  ctx.fillText('🔫', x + 12, by + 20);
+  
+  // Brillo
+  ctx.strokeStyle = 'rgba(241,196,15,0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x + 12, by + 14, 18, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawRobotProjectile(pr) {
+  ctx.save();
+  const g = ctx.createRadialGradient(pr.x, pr.y, 2, pr.x, pr.y, 8);
+  g.addColorStop(0, '#ffdd00');
+  g.addColorStop(0.5, '#ff8800');
+  g.addColorStop(1, 'rgba(255,136,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(pr.x, pr.y, 7, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Estela
+  ctx.globalAlpha = 0.4;
+  ctx.fillStyle = '#ffaa00';
+  ctx.beginPath();
+  ctx.arc(pr.x - pr.vx * 1.5, pr.y, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
@@ -1415,6 +1574,9 @@ function draw() {
   plants.forEach(pl => drawPlant(pl));
   fires.forEach(fi => drawFire(fi));
 
+  // Cajas de munición
+  ammoBoxes.forEach(box => { if (!box.got) drawAmmoBox(box); });
+
   for (let b of batteries) {
     if (!b.got) {
       b.bob += 0.05; const by2 = b.y + Math.sin(b.bob) * 5;
@@ -1426,6 +1588,7 @@ function draw() {
   }
 
   projectiles.forEach(pr => drawProjectile(pr));
+  robotProjectiles.forEach(pr => drawRobotProjectile(pr));
 
   enemies.forEach(en => {
     ctx.globalAlpha = en.hit > 0 ? 0.45 : 1;
