@@ -148,38 +148,38 @@ html, body {
   transition: none; 
 }
 
-/* Controles reposicionados */
+/* Controles - más compactos en móvil */
 #ctrl { 
   width: 100%;
   display: flex; 
   justify-content: space-between; 
-  align-items: center;
-  padding: 8px 16px; 
+  align-items: flex-end;
+  padding: 4px 8px; 
   z-index: 30; 
   pointer-events: none;
   background: transparent;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 .ctrl-group {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   pointer-events: auto;
 }
 .btn-ctrl { 
-  width: 60px; 
-  height: 60px; 
-  background: rgba(20,30,20,0.75); 
-  border: 3px solid rgba(180,220,100,0.6); 
+  width: 55px; 
+  height: 55px; 
+  background: rgba(20,30,20,0.6); 
+  border: 2.5px solid rgba(180,220,100,0.5); 
   border-radius: 50%; 
   color: #e0f0e0; 
   display: flex; 
   justify-content: center; 
   align-items: center; 
-  font-size: 28px; 
+  font-size: 26px; 
   font-weight: bold;
   pointer-events: auto; 
   backdrop-filter: blur(4px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   transition: transform 0.05s, background 0.1s;
 }
 .btn-ctrl:active {
@@ -190,15 +190,15 @@ html, body {
 
 /* HUD responsive */
 @media (max-width: 600px) {
-  .hud-box { padding: 4px 6px; min-width: 60px; }
+  .hud-box { padding: 4px 5px; min-width: 55px; }
   .hud-label { font-size: 7px; }
-  .hud-val { font-size: 13px; }
+  .hud-val { font-size: 12px; }
   #barra-bat { height: 6px; }
   #fill-bat { height: 6px; }
-  .btn-ctrl { width: 50px; height: 50px; font-size: 24px; }
-  #ctrl { padding: 6px 10px; }
-  #msg { font-size: 14px; }
-  #score-pop { font-size: 18px; }
+  .btn-ctrl { width: 45px; height: 45px; font-size: 22px; }
+  #ctrl { padding: 2px 5px; }
+  #msg { font-size: 13px; }
+  #score-pop { font-size: 16px; }
 }
 
 @media (pointer: coarse) { 
@@ -251,7 +251,7 @@ html, body {
       <div class="btn-ctrl" id="bL">◀</div>
       <div class="btn-ctrl" id="bR">▶</div>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 8px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
       <div class="btn-ctrl" id="bShoot" style="background:rgba(155,89,182,0.3); border-color:rgba(155,89,182,0.8);">💥</div>
       <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.3); border-color:rgba(46,204,113,0.8);">▲</div>
     </div>
@@ -562,13 +562,13 @@ function resize() {
   const winHeight = window.innerHeight;
   
   const targetRatio = 1100 / 520;
-  // En móvil, reducir un poco el ancho para que los botones no tapen
-  const widthFactor = isMobile ? 0.92 : 0.9;
+  // En móvil, usar casi todo el ancho (98%)
+  const widthFactor = isMobile ? 0.98 : 0.9;
   let canvasWidth = winWidth * widthFactor;
   let canvasHeight = canvasWidth / targetRatio;
   
-  const ctrlHeight = document.getElementById('ctrl').offsetHeight || 80;
-  const maxHeight = isMobile ? winHeight - ctrlHeight - 30 : Math.min(winHeight * 0.85, 700);
+  const ctrlHeight = document.getElementById('ctrl').offsetHeight || 70;
+  const maxHeight = isMobile ? winHeight - ctrlHeight - 15 : Math.min(winHeight * 0.85, 700);
   
   if (canvasHeight > maxHeight) {
     canvasHeight = maxHeight;
@@ -724,14 +724,11 @@ function buildWorld(f) {
     let type = Math.random() > 0.5 ? 'grass' : 'stone';
     platforms.push({ x: cx, y, w, type });
     
-    // Baterías (siempre en el centro)
     if (Math.random() > 0.38) {
       batteries.push({ x: cx + w / 2 - 10, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
     }
     
-    // Cajas de munición (desplazadas para no solaparse con baterías)
     if (Math.random() > 0.7) {
-      // Colocar a la izquierda o derecha de la batería
       const offset = (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 20);
       ammoBoxes.push({ x: cx + w / 2 - 12 + offset, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
     }
@@ -756,13 +753,14 @@ function buildWorld(f) {
     cx += w + gap;
   }
 
-  let targetDistances = [200, 400, 600, 800];
+  // Solo 2 carteles por fase: a 330m y 660m
+  let targetDistances = [330, 660];
   for (let dist of targetDistances) {
     let targetX = dist * 2.5;
     let bestPlatform = null;
     let minDist = Infinity;
     for (let p of platforms) {
-      if (p.x > targetX - 100 && p.x < targetX + 200) {
+      if (p.x > targetX - 150 && p.x < targetX + 200) {
         let d = Math.abs(p.x + p.w/2 - targetX);
         if (d < minDist) {
           minDist = d;
@@ -775,7 +773,7 @@ function buildWorld(f) {
       distanceSigns.push({ 
         distance: dist, 
         x: signX, 
-        y: bestPlatform.y - 40
+        y: bestPlatform.y - 45
       });
     }
   }
@@ -1003,7 +1001,6 @@ function update() {
       continue;
     }
     
-    // Colisión con enemigos
     for (let j = enemies.length - 1; j >= 0; j--) {
       let en = enemies[j];
       if (pr.x > en.x && pr.x < en.x + en.w && pr.y > en.y && pr.y < en.y + en.h) {
@@ -1017,7 +1014,6 @@ function update() {
       }
     }
     
-    // Colisión con pájaros
     if (robotProjectiles[i]) {
       for (let j = birds.length - 1; j >= 0; j--) {
         let b = birds[j];
@@ -1177,8 +1173,8 @@ function update() {
     if (p.life <= 0) particles.splice(i, 1);
   }
 
-  // Ajustar cámara para que el robot esté más centrado y no lo tapen los botones
-  camX = R.x - (isMobile ? 350 : 270); 
+  // Cámara ajustada para móvil (offset mayor para que se vea mejor)
+  camX = R.x - (isMobile ? 380 : 270); 
   if (camX < 0) camX = 0;
   
   if (R.y > 545) { 
@@ -1217,7 +1213,6 @@ function drawRobot() {
 function drawAmmoBox(box) {
   const x = box.x, by = box.y + Math.sin(box.bob) * 5;
   
-  // Caja morada brillante
   ctx.fillStyle = '#8e44ad';
   ctx.strokeStyle = '#f1c40f';
   ctx.lineWidth = 3;
@@ -1225,13 +1220,11 @@ function drawAmmoBox(box) {
   ctx.fill();
   ctx.stroke();
   
-  // Símbolo de munición
   ctx.fillStyle = '#f1c40f';
   ctx.font = 'bold 18px Courier New';
   ctx.textAlign = 'center';
   ctx.fillText('🔫', x + 12, by + 20);
   
-  // Brillo
   ctx.strokeStyle = 'rgba(241,196,15,0.5)';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -1250,7 +1243,6 @@ function drawRobotProjectile(pr) {
   ctx.arc(pr.x, pr.y, 7, 0, Math.PI * 2);
   ctx.fill();
   
-  // Estela
   ctx.globalAlpha = 0.4;
   ctx.fillStyle = '#ffaa00';
   ctx.beginPath();
@@ -1262,18 +1254,30 @@ function drawRobotProjectile(pr) {
 
 function drawSignPost(sign) {
   const x = sign.x, y = sign.y;
+  
+  // Palo más alto
   ctx.fillStyle = '#5d4037';
-  ctx.fillRect(x - 4, y, 8, 50);
+  ctx.fillRect(x - 4, y, 8, 60);
+  
+  // Tablón más grande con flecha
   ctx.fillStyle = '#8d6e63';
   ctx.strokeStyle = '#4e342e';
-  ctx.lineWidth = 2;
-  roundRect(ctx, x - 35, y - 15, 70, 30, 4);
+  ctx.lineWidth = 2.5;
+  roundRect(ctx, x - 45, y - 20, 90, 35, 5);
   ctx.fill();
   ctx.stroke();
+  
+  // Texto de distancia
   ctx.fillStyle = '#3e2723';
-  ctx.font = 'bold 16px Courier New';
+  ctx.font = 'bold 15px Courier New';
   ctx.textAlign = 'center';
-  ctx.fillText(sign.distance + 'm', x, y + 5);
+  ctx.fillText(sign.distance + 'm', x, y - 2);
+  
+  // Flecha y "TALLER"
+  ctx.font = 'bold 12px Courier New';
+  ctx.fillStyle = '#1a5e20';
+  ctx.fillText('TALLER →', x + 5, y + 15);
+  
   ctx.textAlign = 'left';
 }
 
@@ -1576,12 +1580,12 @@ function draw() {
   platforms.forEach(p => drawPlatform(p));
   drawWorkshop();
   
+  // Carteles de madera
   distanceSigns.forEach(sign => drawSignPost(sign));
   
   plants.forEach(pl => drawPlant(pl));
   fires.forEach(fi => drawFire(fi));
 
-  // Cajas de munición
   ammoBoxes.forEach(box => { if (!box.got) drawAmmoBox(box); });
 
   for (let b of batteries) {
