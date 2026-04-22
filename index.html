@@ -134,7 +134,6 @@ html, body {
   transition: none; 
 }
 
-/* Controles */
 #ctrl { 
   width: 100%;
   display: flex; 
@@ -169,7 +168,6 @@ html, body {
   border-color: #aaffaa;
 }
 
-/* Ajustes responsive */
 @media (max-width: 600px) {
   .btn-ctrl { width: 60px; height: 60px; font-size: 28px; }
   #ctrl { padding: 8px 12px; }
@@ -232,7 +230,7 @@ html, body {
 </div>
 
 <script>
-// ─── DETECCIÓN DE DISPOSITIVO MÓVIL ─────────────────────────────────────────
+// Detección de móvil
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                  ('ontouchstart' in window) || 
                  (navigator.maxTouchPoints > 0);
@@ -267,7 +265,6 @@ function checkOrientation() {
   }
 }
 
-// Ejecutar después de que todo esté cargado
 window.addEventListener('load', () => {
   checkOrientation();
   resize();
@@ -365,6 +362,9 @@ function sfxProjectile() {
 }
 function sfxFire() {
   playTone(150,'sawtooth',0.06,0.2); playTone(100,'sawtooth',0.08,0.18,0.03);
+}
+function sfxBird() {
+  playTone(800,'sawtooth',0.08,0.15); playTone(600,'sawtooth',0.1,0.12,0.06);
 }
 
 // ── MÚSICA AMBIENTAL ────────────────────────────────────────────────────────
@@ -528,7 +528,6 @@ function resize() {
   let canvasHeight = canvasWidth / targetRatio;
   
   const ctrlHeight = document.getElementById('ctrl').offsetHeight || 80;
-  // Limitar tamaño máximo en PC para que no sea exagerado
   const maxWidth = isMobile ? winWidth : Math.min(winWidth, 1400);
   const maxHeight = isMobile ? winHeight - ctrlHeight - 20 : Math.min(winHeight - ctrlHeight - 20, 660);
   
@@ -565,9 +564,10 @@ let active = false, fr = 0, camX = 0, vidas = 3, bat = 0, fase = 1, score = 0;
 let shake = 0, flash = 0, particles = [], stars = [], titleFr = 0, titleRaf, raf2;
 let scorePops = [];
 let distanceSigns = [];
-let sharks = []; // Tiburones
+let sharks = [];
+let birds = [];
 
-const POINTS = { boar: 100, snake: 150, lion: 200, bear: 250, plant: 0 };
+const POINTS = { boar: 100, snake: 150, lion: 200, bear: 250, bird: 200, plant: 0 };
 
 const R = { x: 60, y: 250, w: 38, h: 50, vx: 0, vy: 0, spd: 0.95, fri: 0.83, jmp: 13.5, grav: 0.6, land: false, dir: 1 };
 let platforms = [], enemies = [], batteries = [], clouds = [], fish = [];
@@ -668,23 +668,9 @@ function buildWorld(f) {
   enemies = []; batteries = []; plants = []; fires = []; projectiles = [];
   distanceSigns = [];
   sharks = [];
+  birds = [];
 
-  // Carteles cada 200 metros
-  for (let d = 200; d < 1000; d += 200) {
-    distanceSigns.push({ distance: d, x: d * 2.5 });
-  }
-
-  // Tiburones aleatorios
-  for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
-    sharks.push({
-      x: 500 + Math.random() * L,
-      y: 470,
-      speed: 0.5 + Math.random() * 0.8,
-      direction: Math.random() > 0.5 ? 1 : -1,
-      finOffset: Math.random() * Math.PI * 2
-    });
-  }
-
+  // Crear plataformas primero
   let cx = 820;
   while (cx < L) {
     let gap = 100 + Math.random() * 120, w = 200 + Math.random() * 320, y = 290 + Math.random() * 110;
@@ -710,6 +696,58 @@ function buildWorld(f) {
     }
 
     cx += w + gap;
+  }
+
+  // Carteles de distancia SOBRE PLATAFORMAS
+  let targetDistances = [200, 400, 600, 800];
+  for (let dist of targetDistances) {
+    let targetX = dist * 2.5;
+    // Buscar la plataforma más cercana a targetX
+    let bestPlatform = null;
+    let minDist = Infinity;
+    for (let p of platforms) {
+      if (p.x > targetX - 100 && p.x < targetX + 200) {
+        let d = Math.abs(p.x + p.w/2 - targetX);
+        if (d < minDist) {
+          minDist = d;
+          bestPlatform = p;
+        }
+      }
+    }
+    if (bestPlatform) {
+      let signX = Math.min(bestPlatform.x + bestPlatform.w - 80, Math.max(bestPlatform.x + 40, targetX));
+      distanceSigns.push({ 
+        distance: dist, 
+        x: signX, 
+        y: bestPlatform.y - 40 // Sobre la plataforma
+      });
+    }
+  }
+
+  // Tiburones (más visibles)
+  for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
+    sharks.push({
+      x: 500 + Math.random() * L,
+      y: 470,
+      speed: 0.3 + Math.random() * 0.5,
+      direction: Math.random() > 0.5 ? 1 : -1,
+      finOffset: Math.random() * Math.PI * 2
+    });
+  }
+
+  // Pájaros malvados (1-2 por fase)
+  let numBirds = 1 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < numBirds; i++) {
+    birds.push({
+      x: 400 + Math.random() * (L - 800),
+      y: 100 + Math.random() * 150,
+      vx: 1.5 + Math.random() * 2,
+      vy: 0.5 + Math.random(),
+      w: 40, h: 30,
+      angle: 0,
+      hit: 0,
+      pattern: Math.random() > 0.5 ? 'circle' : 'dive'
+    });
   }
 
   let lp = platforms[platforms.length - 1];
@@ -829,10 +867,42 @@ function update() {
   // Actualizar tiburones
   for (let shark of sharks) {
     shark.x += shark.speed * shark.direction;
-    if (shark.x < camX - 200 || shark.x > camX + 1300) {
+    if (shark.x < camX - 300 || shark.x > camX + 1400) {
       shark.direction *= -1;
     }
     shark.finOffset += 0.02;
+  }
+
+  // Actualizar pájaros
+  for (let i = birds.length - 1; i >= 0; i--) {
+    let b = birds[i];
+    if (b.hit > 0) b.hit--;
+    
+    if (b.pattern === 'circle') {
+      b.angle += 0.02;
+      b.x += Math.cos(b.angle) * 3;
+      b.y += Math.sin(b.angle) * 2;
+    } else {
+      b.x += b.vx;
+      b.y += Math.sin(fr * 0.05) * 2;
+      if (b.x < camX - 100 || b.x > camX + 1200) b.vx *= -1;
+    }
+    
+    // Colisión con robot
+    if (R.x < b.x + b.w && R.x + R.w > b.x && R.y < b.y + b.h && R.y + R.h > b.y) {
+      if (R.vy > 1.5 && R.y + R.h < b.y + b.h * 0.5) {
+        // Saltar sobre el pájaro
+        addScore(200, b.x + 20, b.y);
+        spawnParticles(b.x + 20, b.y + 15, '#8B4513', 14);
+        birds.splice(i, 1);
+        sfxStomp();
+        R.vy = -10;
+      } else if (b.hit === 0) {
+        onDamage();
+        b.hit = 40;
+        sfxBird();
+      }
+    }
   }
 
   for (let i = enemies.length - 1; i >= 0; i--) {
@@ -940,46 +1010,125 @@ function drawRobot() {
 }
 
 function drawSignPost(sign) {
-  const x = sign.x, y = 380;
+  const x = sign.x, y = sign.y;
   // Palo
   ctx.fillStyle = '#5d4037';
-  ctx.fillRect(x - 3, y - 40, 6, 80);
+  ctx.fillRect(x - 4, y, 8, 50);
   // Tablón
   ctx.fillStyle = '#8d6e63';
   ctx.strokeStyle = '#4e342e';
   ctx.lineWidth = 2;
-  roundRect(ctx, x - 35, y - 55, 70, 30, 4);
+  roundRect(ctx, x - 35, y - 15, 70, 30, 4);
   ctx.fill();
   ctx.stroke();
   // Texto
   ctx.fillStyle = '#3e2723';
   ctx.font = 'bold 16px Courier New';
   ctx.textAlign = 'center';
-  ctx.fillText(sign.distance + 'm', x, y - 33);
+  ctx.fillText(sign.distance + 'm', x, y + 5);
   ctx.textAlign = 'left';
 }
 
 function drawShark(shark) {
   const x = shark.x, y = shark.y, dir = shark.direction;
-  const finWave = Math.sin(shark.finOffset) * 3;
+  const finWave = Math.sin(shark.finOffset) * 4;
   
   ctx.save();
   ctx.translate(x, y);
   if (dir < 0) ctx.scale(-1, 1);
   
-  // Aleta dorsal (visible fuera del agua)
+  // Aleta dorsal (más grande y visible)
   ctx.fillStyle = '#2c3e50';
   ctx.beginPath();
-  ctx.moveTo(-15, -25);
-  ctx.lineTo(-5, -45 + finWave);
-  ctx.lineTo(10, -25);
+  ctx.moveTo(-20, -20);
+  ctx.lineTo(-8, -50 + finWave);
+  ctx.lineTo(15, -20);
+  ctx.closePath();
   ctx.fill();
   
-  // Sombra del cuerpo bajo el agua
-  ctx.fillStyle = 'rgba(44, 62, 80, 0.3)';
+  // Aleta con borde más claro
+  ctx.strokeStyle = '#1a252f';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.ellipse(0, -5, 30, 8, 0, 0, Math.PI * 2);
+  ctx.moveTo(-20, -20);
+  ctx.lineTo(-8, -50 + finWave);
+  ctx.lineTo(15, -20);
+  ctx.stroke();
+  
+  // Sombra del cuerpo bajo el agua
+  ctx.fillStyle = 'rgba(44, 62, 80, 0.4)';
+  ctx.beginPath();
+  ctx.ellipse(0, -8, 35, 10, 0, 0, Math.PI * 2);
   ctx.fill();
+  
+  // Ojo (visible sobre el agua)
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(10, -15, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(11, -16, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.restore();
+}
+
+function drawBird(b) {
+  const x = b.x, y = b.y;
+  ctx.save();
+  ctx.translate(x, y);
+  
+  // Alas batiendo
+  const wingAngle = Math.sin(fr * 0.3) * 0.5;
+  
+  // Cuerpo
+  ctx.fillStyle = '#4a3728';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 20, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Cabeza
+  ctx.fillStyle = '#5d4037';
+  ctx.beginPath();
+  ctx.arc(15, -8, 10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Ojos malvados
+  ctx.fillStyle = '#ff0000';
+  ctx.beginPath();
+  ctx.arc(18, -12, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(19, -13, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Pico
+  ctx.fillStyle = '#f57c00';
+  ctx.beginPath();
+  ctx.moveTo(24, -10);
+  ctx.lineTo(32, -12);
+  ctx.lineTo(24, -6);
+  ctx.fill();
+  
+  // Alas
+  ctx.fillStyle = '#3e2723';
+  ctx.save();
+  ctx.translate(-5, -5);
+  ctx.rotate(-0.5 + wingAngle);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 25, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  
+  ctx.save();
+  ctx.translate(5, -5);
+  ctx.rotate(0.5 - wingAngle);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 25, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
   
   ctx.restore();
 }
@@ -1164,13 +1313,19 @@ function draw() {
   ctx.fillStyle = 'rgba(255,255,255,0.07)';
   for (let cl of clouds) { let cx2 = (cl.x - camX * 0.25 + 7000) % 1120; ctx.beginPath(); ctx.ellipse(cx2, cl.y, cl.w, 16, 0, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx2 + 22, cl.y - 12, cl.w * 0.6, 13, 0, 0, Math.PI * 2); ctx.fill(); }
 
+  // Pájaros (detrás de algunas cosas)
+  ctx.save(); ctx.translate(-camX, 0);
+  birds.forEach(b => { ctx.globalAlpha = b.hit > 0 ? 0.5 : 1; drawBird(b); });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
   ctx.save(); ctx.translate(-camX, 0);
   const wg = ctx.createLinearGradient(0, 458, 0, 520); wg.addColorStop(0, '#003366'); wg.addColorStop(1, '#001a33');
   ctx.fillStyle = wg; ctx.fillRect(camX, 458, 1100, 62);
   ctx.fillStyle = 'rgba(100,180,255,0.11)';
   for (let i = 0; i < 10; i++) { let wx = camX + i * 120 + (Math.sin(fr * 0.04 + i) * 22); ctx.fillRect(wx, 463 + Math.sin(fr * 0.05 + i) * 4, 80, 3); }
   
-  // Dibujar tiburones
+  // Tiburones
   sharks.forEach(shark => drawShark(shark));
   
   for (let f of fish) {
@@ -1185,7 +1340,7 @@ function draw() {
   platforms.forEach(p => drawPlatform(p));
   drawWorkshop();
   
-  // Dibujar carteles (siempre visibles)
+  // Carteles (siempre visibles, sobre plataformas)
   distanceSigns.forEach(sign => drawSignPost(sign));
   
   plants.forEach(pl => drawPlant(pl));
@@ -1221,11 +1376,9 @@ function draw() {
   ctx.restore(); ctx.restore();
 }
 
-// Iniciar
 cvs.addEventListener('click', () => { if (!active) start(); });
 titleLoop();
 
-// Asegurar que la orientación se verifique al cargar
 setTimeout(() => {
   checkOrientation();
   resize();
