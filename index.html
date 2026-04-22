@@ -14,12 +14,21 @@ html, body {
   font-family: 'Courier New', monospace; 
   display: flex; 
   flex-direction: column; 
-  justify-content: flex-end;
+  justify-content: center; /* Centrado vertical */
   align-items: center; 
+}
+#game-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 }
 #wrap { 
   position: relative; 
   width: 100%; 
+  margin: 0 auto;
 }
 #c { 
   display: block; 
@@ -137,28 +146,34 @@ html, body {
   transition: none; 
 }
 
+/* Controles reposicionados */
 #ctrl { 
   width: 100%;
   display: flex; 
   justify-content: space-between; 
   align-items: center;
-  padding: 12px 20px; 
+  padding: 8px 16px; 
   z-index: 30; 
   pointer-events: none;
   background: transparent;
-  margin-bottom: 10px;
+  margin-top: 8px;
+}
+.ctrl-group {
+  display: flex;
+  gap: 12px;
+  pointer-events: auto;
 }
 .btn-ctrl { 
-  width: 70px; 
-  height: 70px; 
-  background: rgba(20,30,20,0.7); 
+  width: 65px; 
+  height: 65px; 
+  background: rgba(20,30,20,0.75); 
   border: 3px solid rgba(180,220,100,0.6); 
   border-radius: 50%; 
   color: #e0f0e0; 
   display: flex; 
   justify-content: center; 
   align-items: center; 
-  font-size: 32px; 
+  font-size: 30px; 
   font-weight: bold;
   pointer-events: auto; 
   backdrop-filter: blur(4px);
@@ -171,15 +186,15 @@ html, body {
   border-color: #aaffaa;
 }
 
-/* HUD responsive - mismo estilo pero más compacto en móvil */
+/* HUD responsive */
 @media (max-width: 600px) {
   .hud-box { padding: 5px 8px; min-width: 70px; }
   .hud-label { font-size: 8px; }
   .hud-val { font-size: 14px; }
-  #barra-bat { width: 120px; height: 8px; }
+  #barra-bat { width: 100px; height: 8px; }
   #fill-bat { height: 8px; }
-  .btn-ctrl { width: 60px; height: 60px; font-size: 28px; }
-  #ctrl { padding: 8px 12px; }
+  .btn-ctrl { width: 55px; height: 55px; font-size: 26px; }
+  #ctrl { padding: 6px 12px; }
   #msg { font-size: 14px; }
   #score-pop { font-size: 18px; }
 }
@@ -193,44 +208,45 @@ html, body {
 </style>
 </head>
 <body>
-
-<div id="rotate-msg">
-  <span>📱 → ↻</span>
-  🌿 GIRA LA PANTALLA 🌿<br>
-  <span style="font-size:14px; margin-top:15px; color:#80cbc4;">Juega en horizontal</span>
-</div>
-
-<div id="wrap">
-  <canvas id="c"></canvas>
-  <div id="hud">
-    <div class="hud-box">
-      <span class="hud-label">❤️ VIDAS</span>
-      <span class="hud-val" id="vidas">❤️❤️❤️</span>
-    </div>
-    <div class="hud-box" style="text-align:center;">
-      <span class="hud-label">🔋 BATERÍA</span>
-      <span class="hud-val" id="bpct">100%</span>
-      <div id="barra-bat"><div id="fill-bat"></div></div>
-    </div>
-    <div class="hud-box" style="text-align:center; border-color: rgba(241,196,15,0.6);">
-      <span class="hud-label">🏆 PUNTOS</span>
-      <span class="hud-val" id="score" style="color:#f1c40f;">0</span>
-    </div>
-    <div class="hud-box" style="text-align:right;">
-      <span class="hud-label">🌿 FASE</span>
-      <span class="hud-val" id="fase">1</span>
-    </div>
+<div id="game-container">
+  <div id="rotate-msg">
+    <span>📱 → ↻</span>
+    🌿 GIRA LA PANTALLA 🌿<br>
+    <span style="font-size:14px; margin-top:15px; color:#80cbc4;">Juega en horizontal</span>
   </div>
-  <div id="msg"></div>
-  <div id="score-pop">+100</div>
-</div>
 
-<div id="ctrl">
-  <div style="display:flex; gap:15px;">
-    <div class="btn-ctrl" id="bL">◀</div>
-    <div class="btn-ctrl" id="bR">▶</div>
+  <div id="wrap">
+    <canvas id="c"></canvas>
+    <div id="hud">
+      <div class="hud-box">
+        <span class="hud-label">❤️ VIDAS</span>
+        <span class="hud-val" id="vidas">❤️❤️❤️</span>
+      </div>
+      <div class="hud-box" style="text-align:center;">
+        <span class="hud-label">🔋 BATERÍA</span>
+        <span class="hud-val" id="bpct">100%</span>
+        <div id="barra-bat"><div id="fill-bat"></div></div>
+      </div>
+      <div class="hud-box" style="text-align:center; border-color: rgba(241,196,15,0.6);">
+        <span class="hud-label">🏆 PUNTOS</span>
+        <span class="hud-val" id="score" style="color:#f1c40f;">0</span>
+      </div>
+      <div class="hud-box" style="text-align:right;">
+        <span class="hud-label">🌿 FASE</span>
+        <span class="hud-val" id="fase">1</span>
+      </div>
+    </div>
+    <div id="msg"></div>
+    <div id="score-pop">+100</div>
   </div>
-  <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.25); border-color:rgba(46,204,113,0.8);">▲</div>
+
+  <div id="ctrl">
+    <div class="ctrl-group">
+      <div class="btn-ctrl" id="bL">◀</div>
+      <div class="btn-ctrl" id="bR">▶</div>
+    </div>
+    <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.3); border-color:rgba(46,204,113,0.8);">▲</div>
+  </div>
 </div>
 
 <script>
@@ -535,8 +551,8 @@ function resize() {
   let canvasHeight = canvasWidth / targetRatio;
   
   const ctrlHeight = document.getElementById('ctrl').offsetHeight || 80;
-  const maxWidth = isMobile ? winWidth : Math.min(winWidth, 1400);
-  const maxHeight = isMobile ? winHeight - ctrlHeight - 20 : Math.min(winHeight - ctrlHeight - 20, 660);
+  const maxWidth = isMobile ? winWidth * 0.95 : Math.min(winWidth * 0.9, 1400);
+  const maxHeight = isMobile ? winHeight - ctrlHeight - 30 : Math.min(winHeight * 0.85, 700);
   
   canvasWidth = Math.min(canvasWidth, maxWidth);
   canvasHeight = Math.min(canvasHeight, maxHeight);
@@ -839,7 +855,6 @@ function takeDamage(amount = 25) {
   spawnParticles(R.x + 19, R.y + 25, '#ff4444', 12);
   
   if (bat <= 0) {
-    // Perder vida
     vidas--;
     sfxDead();
     spawnParticles(R.x + 19, R.y + 25, '#ff0000', 25);
@@ -852,7 +867,7 @@ function takeDamage(amount = 25) {
       return;
     }
     
-    bat = 50; // Recuperar media batería al perder vida
+    bat = 50;
     R.x = 60; R.y = 200; R.vx = 0; R.vy = 0;
     camX = 0;
   }
@@ -861,7 +876,6 @@ function takeDamage(amount = 25) {
 }
 
 function onWaterDeath() {
-  // Caer al agua es muerte instantánea
   vidas--;
   sfxDead();
   spawnParticles(R.x + 19, R.y + 25, '#003366', 30);
@@ -914,7 +928,6 @@ function update() {
   
   if (R.x < meta.x + meta.w && R.x + R.w > meta.x && R.y < meta.y + meta.h && R.y + R.h > meta.y) nextPhase();
 
-  // Tiburones
   for (let shark of sharks) {
     shark.x += shark.speed * shark.direction;
     if (shark.x < camX - 300 || shark.x > camX + 1400) {
@@ -923,7 +936,6 @@ function update() {
     shark.finOffset += 0.02;
   }
 
-  // Pájaros
   for (let i = birds.length - 1; i >= 0; i--) {
     let b = birds[i];
     if (b.hit > 0) b.hit--;
@@ -953,7 +965,6 @@ function update() {
     }
   }
 
-  // Enemigos terrestres
   for (let i = enemies.length - 1; i >= 0; i--) {
     let en = enemies[i];
     let spd = en.t === 'bear' ? 1.6 : en.t === 'lion' ? 3.2 : 2.4;
@@ -973,7 +984,6 @@ function update() {
     }
   }
 
-  // Baterías
   for (let b of batteries) {
     b.bob += 0.08;
     if (!b.got && R.x < b.x + 20 && R.x + R.w > b.x && R.y < b.y + 26 && R.y + R.h > b.y) {
@@ -990,7 +1000,6 @@ function update() {
     }
   }
 
-  // Plantas
   for (let pl of plants) {
     pl.shootTimer--;
     if (pl.openTimer > 0) { pl.openTimer--; pl.open = pl.openTimer > 0; }
@@ -1013,7 +1022,6 @@ function update() {
     }
   }
 
-  // Fuego
   for (let fi of fires) {
     fi.frame++;
     if (R.x < fi.x + fi.w - 4 && R.x + R.w > fi.x + 4 && R.y + R.h > fi.y + 8 && R.y < fi.y + fi.h) {
@@ -1026,7 +1034,6 @@ function update() {
     if (fi.hit > 0) fi.hit--;
   }
 
-  // Proyectiles
   for (let i = projectiles.length - 1; i >= 0; i--) {
     let pr = projectiles[i];
     pr.x += pr.vx; pr.y += pr.vy; pr.life -= 0.008;
@@ -1040,7 +1047,6 @@ function update() {
     }
   }
 
-  // Popups
   for (let i = scorePops.length - 1; i >= 0; i--) {
     scorePops[i].y += scorePops[i].vy; scorePops[i].life -= 0.025;
     if (scorePops[i].life <= 0) scorePops.splice(i, 1);
@@ -1048,7 +1054,6 @@ function update() {
   if (scorePops.length > 0) renderScorePops();
   else document.getElementById('score-pop').style.display = 'none';
 
-  // Partículas
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.03;
     if (p.life <= 0) particles.splice(i, 1);
@@ -1056,7 +1061,6 @@ function update() {
 
   camX = R.x - 270; if (camX < 0) camX = 0;
   
-  // Muerte por agua
   if (R.y > 545) { 
     onWaterDeath(); 
   }
