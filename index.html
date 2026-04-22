@@ -2,27 +2,145 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Robot Jungle - El Taller de la Selva</title>
 <style>
 * { touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: #050a05; font-family: 'Courier New', monospace; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-#wrap { position: relative; width: 100%; max-width: 1100px; }
-#c { display: block; width: 100%; height: auto; border: 3px solid #1a331a; border-radius: 8px; box-shadow: 0 0 40px rgba(0,200,100,0.15); }
-#hud { position: absolute; top: 10px; left: 10px; right: 10px; display: none; pointer-events: none; flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 6px; }
-.hud-box { background: rgba(0,0,0,0.65); border: 1.5px solid rgba(100,220,120,0.5); border-radius: 8px; padding: 6px 12px; color: #fff; line-height: 1.9; font-weight: bold; letter-spacing: 1px; }
+html, body { 
+  width: 100%; 
+  height: 100%; 
+  overflow: hidden; 
+  background: #050a05; 
+  font-family: 'Courier New', monospace; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: flex-end;
+  align-items: center; 
+}
+#wrap { 
+  position: relative; 
+  width: 100%; 
+}
+#c { 
+  display: block; 
+  width: 100%; 
+  height: auto; 
+  border: 3px solid #1a331a; 
+  border-radius: 0px; 
+  box-shadow: 0 0 40px rgba(0,200,100,0.15); 
+}
+/* Mensaje de girar pantalla - SOLO VISIBLE EN MÓVIL */
+#rotate-msg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(5, 15, 5, 0.95);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  color: #a5d6a5;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  flex-direction: column;
+  backdrop-filter: blur(8px);
+}
+#rotate-msg span {
+  font-size: 48px;
+  margin-bottom: 20px;
+  animation: rotateIcon 2s infinite;
+}
+@keyframes rotateIcon {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-90deg); }
+  75% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+#hud { 
+  position: absolute; 
+  top: 10px; 
+  left: 10px; 
+  right: 10px; 
+  display: none; 
+  pointer-events: none; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  gap: 6px; 
+  z-index: 15;
+}
+.hud-box { 
+  background: rgba(0,0,0,0.65); 
+  border: 1.5px solid rgba(100,220,120,0.5); 
+  border-radius: 8px; 
+  padding: 6px 12px; 
+  color: #fff; 
+  line-height: 1.9; 
+  font-weight: bold; 
+  letter-spacing: 1px; 
+  backdrop-filter: blur(2px);
+}
 .hud-label { font-size: clamp(7px,1.2vw,10px); color: #80cbc4; font-weight: normal; letter-spacing: 2px; display: block; margin-bottom: 1px; }
 .hud-val { font-size: clamp(12px,2.2vw,18px); font-weight: bold; }
 #barra-bat { width: 90px; height: 8px; background: #1a2a1a; border-radius: 5px; margin-top: 4px; border: 1px solid rgba(100,220,120,0.3); }
 #fill-bat { height: 8px; border-radius: 5px; background: #2ecc71; width: 0%; transition: width 0.25s, background 0.3s; }
 #msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%,-50%); font-size: clamp(13px,2.5vw,17px); font-weight: bold; pointer-events: none; display: none; text-align: center; text-shadow: 2px 2px #000; border-radius: 8px; padding: 10px 20px; white-space: nowrap; z-index: 10; }
 #score-pop { position: absolute; pointer-events: none; font-size: clamp(14px,2.5vw,20px); font-weight: bold; color: #f1c40f; text-shadow: 2px 2px #000; display: none; z-index: 20; transition: none; }
-#ctrl { position: absolute; bottom: 6px; left: 0; right: 0; display: none; justify-content: space-between; padding: 0 12px; z-index: 20; pointer-events: none; }
-.btn-ctrl { width: clamp(52px,11vw,68px); height: clamp(52px,11vw,68px); background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-size: clamp(18px,4.5vw,24px); pointer-events: auto; }
-@media (pointer: coarse) { #ctrl { display: flex !important; } }
+
+/* Controles fuera del canvas */
+#ctrl { 
+  width: 100%;
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+  padding: 12px 20px; 
+  z-index: 30; 
+  pointer-events: none;
+  background: transparent;
+  margin-bottom: 10px;
+}
+.btn-ctrl { 
+  width: 70px; 
+  height: 70px; 
+  background: rgba(20,30,20,0.7); 
+  border: 3px solid rgba(180,220,100,0.6); 
+  border-radius: 50%; 
+  color: #e0f0e0; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  font-size: 32px; 
+  font-weight: bold;
+  pointer-events: auto; 
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  transition: transform 0.05s, background 0.1s;
+}
+.btn-ctrl:active {
+  background: rgba(46,204,113,0.4);
+  transform: scale(0.9);
+  border-color: #aaffaa;
+}
+@media (max-width: 600px) {
+  .btn-ctrl { width: 60px; height: 60px; font-size: 28px; }
+  #ctrl { padding: 8px 12px; }
+}
+@media (pointer: coarse) { 
+  #ctrl { display: flex !important; } 
+}
+@media (pointer: fine) {
+  #ctrl { display: none !important; }
+}
 </style>
 </head>
 <body>
+
+<div id="rotate-msg">
+  <span>📱 → ↻</span>
+  🌿 GIRA LA PANTALLA 🌿<br>
+  <span style="font-size:14px; margin-top:15px; color:#80cbc4;">Juega en horizontal</span>
+</div>
+
 <div id="wrap">
   <canvas id="c"></canvas>
   <div id="hud">
@@ -46,16 +164,58 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #050a05; f
   </div>
   <div id="msg"></div>
   <div id="score-pop">+100</div>
-  <div id="ctrl">
-    <div style="display:flex;gap:10px;">
-      <div class="btn-ctrl" id="bL">◀</div>
-      <div class="btn-ctrl" id="bR">▶</div>
-    </div>
-    <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.35);border-color:rgba(46,204,113,0.7);">▲</div>
+</div>
+
+<div id="ctrl">
+  <div style="display:flex; gap:15px;">
+    <div class="btn-ctrl" id="bL">◀</div>
+    <div class="btn-ctrl" id="bR">▶</div>
   </div>
+  <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.25); border-color:rgba(46,204,113,0.8);">▲</div>
 </div>
 
 <script>
+// ─── DETECCIÓN DE DISPOSITIVO MÓVIL ─────────────────────────────────────────
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                 ('ontouchstart' in window) || 
+                 (navigator.maxTouchPoints > 0);
+
+// Solo forzar orientación en móviles
+const rotateMsg = document.getElementById('rotate-msg');
+let isLandscape = true;
+
+function checkOrientation() {
+  // En PC (no móvil), ignorar completamente la orientación
+  if (!isMobile) {
+    rotateMsg.style.display = 'none';
+    isLandscape = true;
+    return;
+  }
+  
+  const newIsLandscape = window.innerWidth > window.innerHeight;
+  if (newIsLandscape !== isLandscape) {
+    isLandscape = newIsLandscape;
+    if (!isLandscape) {
+      rotateMsg.style.display = 'flex';
+      if (active) {
+        cancelAnimationFrame(raf2);
+        active = false;
+      }
+    } else {
+      rotateMsg.style.display = 'none';
+      if (!active && vidas > 0) {
+        active = true;
+        loop();
+      }
+    }
+    resize();
+  }
+}
+
+window.addEventListener('resize', () => { checkOrientation(); resize(); });
+window.addEventListener('orientationchange', () => { setTimeout(checkOrientation, 50); });
+checkOrientation();
+
 // ── AUDIO ENGINE ──────────────────────────────────────────────────────────────
 let AC = null;
 
@@ -63,12 +223,10 @@ function getAC() {
   if (!AC) {
     try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
   }
-  // Resume si está suspendido (iOS/Android necesitan esto)
   if (AC && AC.state === 'suspended') AC.resume();
   return AC;
 }
 
-// Desbloquear audio en primer toque/clic (crítico para móvil)
 function unlockAudio() {
   const ac = getAC();
   if (!ac) return;
@@ -140,7 +298,7 @@ function sfxFire() {
   playTone(150,'sawtooth',0.06,0.2); playTone(100,'sawtooth',0.08,0.18,0.03);
 }
 
-// ── MÚSICA DE SELVA (Web Audio) ──────────────────────────────────────────────
+// ── MÚSICA AMBIENTAL (PÁJAROS, VIENTO, LOBOS) ──────────────────────────────
 let musicNodes = [];
 let musicPlaying = false;
 
@@ -149,95 +307,145 @@ function startJungleMusic() {
   const ac = getAC(); if (!ac) return;
   musicPlaying = true;
 
-  // Percusión grave de fondo (bajo)
-  function schedBass(t) {
-    if (!musicPlaying) return;
-    try {
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.connect(g); g.connect(ac.destination);
-      o.type = 'sine'; o.frequency.value = 55 + (Math.random() > 0.5 ? 10 : 0);
-      g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-      o.start(t); o.stop(t + 0.4);
-    } catch(e) {}
-    const interval = 0.5;
-    const id = setTimeout(() => schedBass(ac.currentTime + 0.05), interval * 1000);
-    musicNodes.push({ cancel: () => clearTimeout(id) });
-  }
-
-  // Tambor de selva
-  function schedDrum(t, pat) {
-    if (!musicPlaying) return;
-    try {
-      const buf = ac.createBuffer(1, ac.sampleRate * 0.15, ac.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 4);
-      const src = ac.createBufferSource(), g = ac.createGain();
-      src.buffer = buf; src.connect(g); g.connect(ac.destination);
-      g.gain.setValueAtTime(pat ? 0.28 : 0.14, t);
-      src.start(t); src.stop(t + 0.15);
-    } catch(e) {}
-  }
-
-  // Melodía de flauta de selva
-  const scale = [220, 246, 261, 293, 329, 349, 392, 440];
-  function schedMelody() {
+  // 1. VIENTO SUAVE
+  function schedWind() {
     if (!musicPlaying) return;
     const ac2 = getAC(); if (!ac2) return;
-    const note = scale[Math.floor(Math.random() * scale.length)];
     try {
-      const o = ac2.createOscillator(), g = ac2.createGain(), now = ac2.currentTime;
-      o.type = 'sine'; o.frequency.value = note;
-      o.connect(g); g.connect(ac2.destination);
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(0.08, now + 0.05);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-      o.start(now); o.stop(now + 0.55);
+      const bufferSize = 4096;
+      const node = ac2.createScriptProcessor(bufferSize, 1, 1);
+      const gain = ac2.createGain();
+      const filter = ac2.createBiquadFilter();
+      
+      filter.type = 'bandpass';
+      filter.frequency.value = 400 + Math.random() * 300;
+      filter.Q.value = 0.6;
+      
+      gain.gain.setValueAtTime(0.02, ac2.currentTime);
+      
+      node.onaudioprocess = function(e) {
+        const output = e.outputBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = (Math.random() * 2 - 1) * 0.4;
+        }
+      };
+      
+      node.connect(filter);
+      filter.connect(gain);
+      gain.connect(ac2.destination);
+      
+      const id = setTimeout(() => {
+        try { node.disconnect(); } catch(e) {}
+        if (musicPlaying) schedWind();
+      }, 10000 + Math.random() * 8000);
+      
+      musicNodes.push({ node, gain, filter, cancel: () => clearTimeout(id) });
     } catch(e) {}
-    const wait = 400 + Math.random() * 800;
-    const id = setTimeout(schedMelody, wait);
-    musicNodes.push({ cancel: () => clearTimeout(id) });
   }
 
-  // Patrón de percusión (tempo ~120bpm = 500ms/beat)
-  function drumLoop(beat) {
+  // 2. PAJARILLOS
+  function schedBird() {
     if (!musicPlaying) return;
     const ac3 = getAC(); if (!ac3) return;
-    const now = ac3.currentTime;
-    const pattern = [1, 0, 0, 1, 0, 1, 0, 0]; // 8 pasos
-    for (let i = 0; i < 8; i++) {
-      schedDrum(now + i * 0.25, pattern[i]);
-    }
-    const id = setTimeout(() => drumLoop(beat + 8), 2000);
+    try {
+      const osc = ac3.createOscillator();
+      const gain = ac3.createGain();
+      osc.type = 'sine';
+      
+      const now = ac3.currentTime;
+      const baseFreq = 1200 + Math.random() * 800;
+      osc.frequency.setValueAtTime(baseFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, now + 0.08);
+      
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.04, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      
+      osc.connect(gain);
+      gain.connect(ac3.destination);
+      
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } catch(e) {}
+    
+    const wait = 3000 + Math.random() * 7000;
+    const id = setTimeout(() => schedBird(), wait);
     musicNodes.push({ cancel: () => clearTimeout(id) });
   }
 
-  // Chirridos de pájaros/grillos
-  function schedBird() {
+  // 3. AULLIDO DE LOBO
+  function schedWolf() {
     if (!musicPlaying) return;
     const ac4 = getAC(); if (!ac4) return;
     try {
-      const o = ac4.createOscillator(), g = ac4.createGain(), now = ac4.currentTime;
-      o.type = 'sine';
-      o.frequency.setValueAtTime(1200 + Math.random() * 600, now);
-      o.frequency.exponentialRampToValueAtTime(800 + Math.random() * 400, now + 0.1);
-      o.connect(g); g.connect(ac4.destination);
-      g.gain.setValueAtTime(0.04, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-      o.start(now); o.stop(now + 0.15);
+      const osc = ac4.createOscillator();
+      const gain = ac4.createGain();
+      const now = ac4.currentTime;
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.linearRampToValueAtTime(280, now + 0.8);
+      osc.frequency.linearRampToValueAtTime(200, now + 1.6);
+      
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.06, now + 0.3);
+      gain.gain.linearRampToValueAtTime(0.06, now + 1.2);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+      
+      osc.connect(gain);
+      gain.connect(ac4.destination);
+      
+      osc.start(now);
+      osc.stop(now + 2.0);
     } catch(e) {}
-    const wait = 800 + Math.random() * 3000;
-    const id = setTimeout(schedBird, wait);
+    
+    const wait = 15000 + Math.random() * 20000;
+    const id = setTimeout(() => schedWolf(), wait);
     musicNodes.push({ cancel: () => clearTimeout(id) });
   }
 
-  schedBass(ac.currentTime);
-  drumLoop(0);
-  schedMelody();
+  // 4. GRILLOS
+  function schedCricket() {
+    if (!musicPlaying) return;
+    const ac5 = getAC(); if (!ac5) return;
+    for (let i = 0; i < 4; i++) {
+      try {
+        const osc = ac5.createOscillator();
+        const gain = ac5.createGain();
+        osc.type = 'square';
+        osc.frequency.value = 800 + Math.random() * 400;
+        
+        const now = ac5.currentTime + i * 0.06;
+        gain.gain.setValueAtTime(0.015, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        
+        osc.connect(gain);
+        gain.connect(ac5.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } catch(e) {}
+    }
+    const wait = 4000 + Math.random() * 6000;
+    const id = setTimeout(() => schedCricket(), wait);
+    musicNodes.push({ cancel: () => clearTimeout(id) });
+  }
+
+  schedWind();
   schedBird();
+  schedWolf();
+  schedCricket();
 }
 
 function stopJungleMusic() {
   musicPlaying = false;
-  musicNodes.forEach(n => { try { n.cancel(); } catch(e){} });
+  musicNodes.forEach(n => { 
+    try { 
+      if (n.node) n.node.disconnect();
+      if (n.gain) n.gain.disconnect();
+      if (n.cancel) n.cancel();
+    } catch(e){} 
+  });
   musicNodes = [];
 }
 
@@ -246,14 +454,27 @@ const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
 cvs.width = 1100; cvs.height = 520;
 
 function resize() {
-  const isTouch = window.matchMedia('(pointer: coarse)').matches;
-  const btnH = isTouch ? Math.max(52, Math.min(window.innerWidth * 0.11, 68)) + 18 : 0;
-  const maxW = Math.min(window.innerWidth - 6, 1100);
-  const maxH = window.innerHeight - btnH - 6;
-  const w = Math.min(maxW, maxH * (1100 / 520));
-  document.getElementById('wrap').style.maxWidth = w + 'px';
+  const wrap = document.getElementById('wrap');
+  const winWidth = window.innerWidth;
+  const winHeight = window.innerHeight;
+  
+  const targetRatio = 1100 / 520;
+  let canvasWidth = winWidth;
+  let canvasHeight = canvasWidth / targetRatio;
+  
+  const ctrlHeight = document.getElementById('ctrl').offsetHeight || 80;
+  const maxHeight = winHeight - ctrlHeight - 20;
+  
+  if (canvasHeight > maxHeight) {
+    canvasHeight = maxHeight;
+    canvasWidth = canvasHeight * targetRatio;
+  }
+  
+  wrap.style.width = canvasWidth + 'px';
+  wrap.style.height = canvasHeight + 'px';
 }
-resize(); window.addEventListener('resize', resize);
+window.addEventListener('resize', resize);
+resize();
 
 // ── CONTROLES ─────────────────────────────────────────────────────────────────
 const K = {};
@@ -274,7 +495,8 @@ window.addEventListener('keyup', e => K[e.code] = false);
 // ── ESTADO ────────────────────────────────────────────────────────────────────
 let active = false, fr = 0, camX = 0, vidas = 3, bat = 0, fase = 1, score = 0;
 let shake = 0, flash = 0, particles = [], stars = [], titleFr = 0, titleRaf, raf2;
-let scorePops = []; // popups flotantes de puntuación
+let scorePops = [];
+let distanceSigns = [];
 
 const POINTS = { boar: 100, snake: 150, lion: 200, bear: 250, plant: 0 };
 
@@ -375,6 +597,12 @@ function buildWorld(f) {
   const L = 3000 + f * 1000;
   platforms = [{ x: 0, y: 430, w: 750, type: 'grass' }];
   enemies = []; batteries = []; plants = []; fires = []; projectiles = [];
+  distanceSigns = [];
+
+  // Crear carteles cada 100 metros (100 píxeles = 100m)
+  for (let d = 100; d < 1000; d += 100) {
+    distanceSigns.push({ distance: d, x: d * 2.5, triggered: false });
+  }
 
   let cx = 820;
   while (cx < L) {
@@ -383,7 +611,6 @@ function buildWorld(f) {
     platforms.push({ x: cx, y, w, type });
     if (Math.random() > 0.38) batteries.push({ x: cx + w / 2 - 10, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
 
-    // Enemigos móviles
     if (Math.random() > 0.5) {
       const types = ['boar', 'snake', 'lion', 'bear'], weights = [0.3, 0.25, 0.25, 0.2];
       let r = Math.random(), cum = 0, t = 'boar';
@@ -391,13 +618,12 @@ function buildWorld(f) {
       enemies.push({ x: cx + 60, y: y - 44, w: 46, h: 44, d: 1, lL: cx, lR: cx + w - 48, t, hit: 0 });
     }
 
-    // Planta carnívora (fija, al borde de la plataforma)
-    if (Math.random() > 0.55) {
+    // Plantas solo en plataformas grandes y con baja probabilidad
+    if (w > 250 && Math.random() > 0.75) {
       const px = cx + 30 + Math.random() * (w - 80);
-      plants.push({ x: px, y: y - 60, w: 30, h: 60, shootTimer: Math.floor(Math.random() * 120), shootInterval: 90 + Math.floor(Math.random() * 60), open: false, openTimer: 0 });
+      plants.push({ x: px, y: y - 60, w: 30, h: 60, shootTimer: Math.floor(Math.random() * 180), shootInterval: 120 + Math.floor(Math.random() * 80), open: false, openTimer: 0 });
     }
 
-    // Hoguera (fija, sobre la plataforma)
     if (Math.random() > 0.6) {
       const fx = cx + 60 + Math.random() * (w - 120);
       fires.push({ x: fx, y: y - 36, w: 36, h: 36, frame: Math.floor(Math.random() * 30) });
@@ -415,6 +641,11 @@ function buildWorld(f) {
 
 // ── UI ────────────────────────────────────────────────────────────────────────
 function start() {
+  // En móvil, verificar orientación antes de empezar
+  if (isMobile && !isLandscape) {
+    rotateMsg.style.display = 'flex';
+    return;
+  }
   cancelAnimationFrame(titleRaf);
   unlockAudio(); getAC();
   active = true; vidas = 3; bat = 0; camX = 0; fase = 1; score = 0;
@@ -449,7 +680,6 @@ function addScore(pts, wx, wy) {
   score += pts;
   sfxScore(pts);
   updateUI();
-  // Popup flotante en canvas coords → div overlay coords
   const wrap = document.getElementById('wrap');
   const scaleX = wrap.clientWidth / 1100;
   const scaleY = (wrap.clientWidth * 520 / 1100) / 520;
@@ -460,7 +690,6 @@ function addScore(pts, wx, wy) {
 }
 
 function renderScorePops() {
-  // Mostrar solo el último popup en el div overlay
   const el = document.getElementById('score-pop');
   if (scorePops.length === 0) { el.style.display = 'none'; return; }
   const last = scorePops[scorePops.length - 1];
@@ -497,7 +726,12 @@ function nextPhase() {
 }
 
 // ── GAME LOOP ─────────────────────────────────────────────────────────────────
-function loop() { if (!active) return; cancelAnimationFrame(raf2); update(); draw(); raf2 = requestAnimationFrame(loop); }
+function loop() { 
+  if (!active) return;
+  // En móvil, si no está en landscape, pausar
+  if (isMobile && !isLandscape) return;
+  cancelAnimationFrame(raf2); update(); draw(); raf2 = requestAnimationFrame(loop); 
+}
 
 function update() {
   if (K['ArrowRight'] || K['KeyD']) { R.vx += R.spd; R.dir = 1; }
@@ -511,9 +745,18 @@ function update() {
       R.y = p.y - R.h; R.vy = 0; R.land = true;
     }
   }
+  
+  // Verificar carteles de distancia
+  for (let sign of distanceSigns) {
+    if (!sign.triggered && R.x >= sign.x) {
+      sign.triggered = true;
+      showMsg(`🌿 ${sign.distance} metros 🌿`, '#a5d6a5', 2000);
+      sfxScore(50);
+    }
+  }
+  
   if (R.x < meta.x + meta.w && R.x + R.w > meta.x && R.y < meta.y + meta.h && R.y + R.h > meta.y) nextPhase();
 
-  // Enemigos móviles
   for (let i = enemies.length - 1; i >= 0; i--) {
     let en = enemies[i];
     let spd = en.t === 'bear' ? 1.6 : en.t === 'lion' ? 3.2 : 2.4;
@@ -529,7 +772,6 @@ function update() {
     }
   }
 
-  // Baterías
   for (let b of batteries) {
     b.bob += 0.08;
     if (!b.got && R.x < b.x + 20 && R.x + R.w > b.x && R.y < b.y + 26 && R.y + R.h > b.y) {
@@ -540,33 +782,28 @@ function update() {
     }
   }
 
-  // Plantas carnívoras
   for (let pl of plants) {
     pl.shootTimer--;
     if (pl.openTimer > 0) { pl.openTimer--; pl.open = pl.openTimer > 0; }
     if (pl.shootTimer <= 0) {
       pl.shootTimer = pl.shootInterval;
       pl.open = true; pl.openTimer = 25;
-      // Disparar proyectil hacia el robot si está cerca
       const dist = Math.abs((pl.x + 15) - (R.x + 19));
       if (dist < 500) {
         const dx = (R.x + 19) - (pl.x + 15);
         const dy = (R.y + 25) - (pl.y + 10);
         const len = Math.sqrt(dx * dx + dy * dy) || 1;
         sfxProjectile();
-        projectiles.push({ x: pl.x + 15, y: pl.y + 5, vx: (dx / len) * 4.5, vy: (dy / len) * 4.5, life: 1, type: 'plant' });
+        projectiles.push({ x: pl.x + 15, y: pl.y + 5, vx: (dx / len) * 3.8, vy: (dy / len) * 3.8, life: 1, type: 'plant' });
       }
     }
-    // Colisión robot con planta (si la toca directamente)
     if (R.x < pl.x + pl.w && R.x + R.w > pl.x && R.y < pl.y + pl.h && R.y + R.h > pl.y) {
       if (R.vy > 1.5 && R.y + R.h < pl.y + pl.h * 0.4) {
-        // Saltar encima de la planta no da puntos pero es válido
         R.vy = -8;
       }
     }
   }
 
-  // Hogueras
   for (let fi of fires) {
     fi.frame++;
     if (R.x < fi.x + fi.w - 4 && R.x + R.w > fi.x + 4 && R.y + R.h > fi.y + 8 && R.y < fi.y + fi.h) {
@@ -575,14 +812,12 @@ function update() {
     if (fi.hit > 0) fi.hit--;
   }
 
-  // Proyectiles
   for (let i = projectiles.length - 1; i >= 0; i--) {
     let pr = projectiles[i];
     pr.x += pr.vx; pr.y += pr.vy; pr.life -= 0.008;
     if (pr.life <= 0 || pr.x < camX - 50 || pr.x > camX + 1150 || pr.y > 550 || pr.y < -20) {
       projectiles.splice(i, 1); continue;
     }
-    // Colisión con robot
     if (R.x < pr.x + 8 && R.x + R.w > pr.x - 8 && R.y < pr.y + 8 && R.y + R.h > pr.y - 8) {
       spawnParticles(pr.x, pr.y, '#7bed3a', 8);
       projectiles.splice(i, 1);
@@ -590,7 +825,6 @@ function update() {
     }
   }
 
-  // Popups de puntuación
   for (let i = scorePops.length - 1; i >= 0; i--) {
     scorePops[i].y += scorePops[i].vy; scorePops[i].life -= 0.025;
     if (scorePops[i].life <= 0) scorePops.splice(i, 1);
@@ -598,7 +832,6 @@ function update() {
   if (scorePops.length > 0) renderScorePops();
   else document.getElementById('score-pop').style.display = 'none';
 
-  // Partículas
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.03;
     if (p.life <= 0) particles.splice(i, 1);
@@ -626,6 +859,23 @@ function drawRobot() {
   ctx.fillStyle = '#455a64'; roundRect(ctx, rx + 4, ry + R.h - 16, 12, 16 + walkCycle, 3); ctx.fill(); roundRect(ctx, rx + R.w - 16, ry + R.h - 16, 12, 16 - walkCycle, 3); ctx.fill();
   ctx.fillStyle = '#37474f'; ctx.fillRect(rx + 2, ry + R.h + walkCycle, 14, 6); ctx.fillRect(rx + R.w - 16, ry + R.h - walkCycle, 14, 6);
   ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(rx + R.w / 2, ry + R.h + 8, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawSignPost(sign) {
+  const x = sign.x, y = 380;
+  ctx.fillStyle = '#5d4037';
+  ctx.fillRect(x - 3, y - 40, 6, 80);
+  ctx.fillStyle = '#8d6e63';
+  ctx.strokeStyle = '#4e342e';
+  ctx.lineWidth = 2;
+  roundRect(ctx, x - 30, y - 55, 60, 30, 4);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#3e2723';
+  ctx.font = 'bold 14px Courier New';
+  ctx.textAlign = 'center';
+  ctx.fillText(sign.distance + 'm', x, y - 33);
+  ctx.textAlign = 'left';
 }
 
 function drawBoar(en) {
@@ -680,10 +930,8 @@ function drawBear(en) {
 
 function drawPlant(pl) {
   const x = pl.x, y = pl.y;
-  // Tallo
   ctx.strokeStyle = '#2e7d32'; ctx.lineWidth = 6;
   ctx.beginPath(); ctx.moveTo(x + 15, y + pl.h); ctx.bezierCurveTo(x + 10, y + pl.h * 0.6, x + 20, y + pl.h * 0.4, x + 15, y + 20); ctx.stroke();
-  // Hojas del tallo
   ctx.fillStyle = '#388e3c';
   ctx.save(); ctx.translate(x + 12, y + pl.h * 0.55);
   ctx.beginPath(); ctx.ellipse(-12, 0, 14, 6, -0.4, 0, Math.PI * 2); ctx.fill();
@@ -691,9 +939,7 @@ function drawPlant(pl) {
   ctx.save(); ctx.translate(x + 18, y + pl.h * 0.35);
   ctx.beginPath(); ctx.ellipse(12, 0, 14, 6, 0.4, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
-  // Cabeza (boca)
   const openAmt = pl.open ? Math.sin((25 - pl.openTimer) / 25 * Math.PI) * 0.5 : 0;
-  // Mandíbula superior
   ctx.fillStyle = '#c62828';
   ctx.save(); ctx.translate(x + 15, y + 18);
   ctx.beginPath();
@@ -702,30 +948,25 @@ function drawPlant(pl) {
   ctx.quadraticCurveTo(16, 2, 0, 6);
   ctx.quadraticCurveTo(-16, 2, -14, -openAmt * 10);
   ctx.fill();
-  // Interior boca
   ctx.fillStyle = '#ff6b6b';
   ctx.beginPath(); ctx.ellipse(0, 0, 10, 5 + openAmt * 5, 0, 0, Math.PI * 2); ctx.fill();
-  // Dientes
   ctx.fillStyle = '#fff';
   for (let i = -2; i <= 2; i++) {
     ctx.beginPath(); ctx.moveTo(i * 4, -openAmt * 8); ctx.lineTo(i * 4 - 2, -openAmt * 8 + 5); ctx.lineTo(i * 4 + 2, -openAmt * 8 + 5); ctx.fill();
     ctx.beginPath(); ctx.moveTo(i * 4, openAmt * 4); ctx.lineTo(i * 4 - 2, openAmt * 4 - 5); ctx.lineTo(i * 4 + 2, openAmt * 4 - 5); ctx.fill();
   }
-  // Ojos
   ctx.fillStyle = '#ffee58'; ctx.beginPath(); ctx.arc(-7, -14, 5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(7, -14, 5, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#1a237e'; ctx.beginPath(); ctx.arc(-7, -14, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(7, -14, 2.5, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
 
 function drawProjectile(pr) {
-  // Bolita verde venenosa
   ctx.save();
   const g2 = ctx.createRadialGradient(pr.x, pr.y, 1, pr.x, pr.y, 7);
   g2.addColorStop(0, '#aaff00'); g2.addColorStop(1, 'rgba(0,200,0,0)');
   ctx.fillStyle = g2;
   ctx.beginPath(); ctx.arc(pr.x, pr.y, 7, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#7bed3a'; ctx.beginPath(); ctx.arc(pr.x, pr.y, 4, 0, Math.PI * 2); ctx.fill();
-  // Estela
   ctx.globalAlpha = pr.life * 0.4;
   ctx.fillStyle = '#aaff00';
   ctx.beginPath(); ctx.arc(pr.x - pr.vx * 2, pr.y - pr.vy * 2, 3, 0, Math.PI * 2); ctx.fill();
@@ -735,13 +976,10 @@ function drawProjectile(pr) {
 
 function drawFire(fi) {
   const x = fi.x, y = fi.y, t = fi.frame;
-  // Base: brasas
   ctx.fillStyle = '#bf360c';
   ctx.beginPath(); ctx.ellipse(x + 18, y + 32, 16, 5, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#ff6f00';
   ctx.beginPath(); ctx.ellipse(x + 18, y + 30, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
-
-  // Llamas animadas (múltiples capas)
   const flames = [
     { ox: 0, sc: 1.0, col1: '#ff6f00', col2: 'rgba(255,111,0,0)', ph: 0 },
     { ox: -5, sc: 0.75, col1: '#ff8f00', col2: 'rgba(255,143,0,0)', ph: 1.5 },
@@ -761,14 +999,12 @@ function drawFire(fi) {
     ctx.quadraticCurveTo(cx2 + 12 * fl.sc, y + 28 - h * 0.5, cx2 + 10 * fl.sc, y + 28);
     ctx.fill();
   }
-  // Chispas
   for (let i = 0; i < 3; i++) {
     const sx = x + 10 + ((t * 3 + i * 40) % 20);
     const sy = y + 20 - ((t * 2 + i * 30) % 20);
     ctx.fillStyle = '#ffcc02';
     ctx.beginPath(); ctx.arc(sx, sy, 1.5, 0, Math.PI * 2); ctx.fill();
   }
-  // Zona de peligro (sutil resplandor rojo)
   ctx.fillStyle = 'rgba(255,50,0,0.07)';
   ctx.beginPath(); ctx.ellipse(x + 18, y + 28, 22, 18, 0, 0, Math.PI * 2); ctx.fill();
 }
@@ -823,7 +1059,6 @@ function draw() {
   for (let cl of clouds) { let cx2 = (cl.x - camX * 0.25 + 7000) % 1120; ctx.beginPath(); ctx.ellipse(cx2, cl.y, cl.w, 16, 0, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx2 + 22, cl.y - 12, cl.w * 0.6, 13, 0, 0, Math.PI * 2); ctx.fill(); }
 
   ctx.save(); ctx.translate(-camX, 0);
-  // Agua
   const wg = ctx.createLinearGradient(0, 458, 0, 520); wg.addColorStop(0, '#003366'); wg.addColorStop(1, '#001a33');
   ctx.fillStyle = wg; ctx.fillRect(camX, 458, 1100, 62);
   ctx.fillStyle = 'rgba(100,180,255,0.11)';
@@ -839,14 +1074,12 @@ function draw() {
   ctx.save(); ctx.translate(-camX, 0);
   platforms.forEach(p => drawPlatform(p));
   drawWorkshop();
-
-  // Plantas carnívoras
+  
+  distanceSigns.forEach(sign => { if (!sign.triggered) drawSignPost(sign); });
+  
   plants.forEach(pl => drawPlant(pl));
-
-  // Hogueras
   fires.forEach(fi => drawFire(fi));
 
-  // Baterías
   for (let b of batteries) {
     if (!b.got) {
       b.bob += 0.05; const by2 = b.y + Math.sin(b.bob) * 5;
@@ -857,10 +1090,8 @@ function draw() {
     }
   }
 
-  // Proyectiles
   projectiles.forEach(pr => drawProjectile(pr));
 
-  // Enemigos
   enemies.forEach(en => {
     ctx.globalAlpha = en.hit > 0 ? 0.45 : 1;
     if (en.t === 'boar') drawBoar(en);
@@ -872,7 +1103,6 @@ function draw() {
 
   drawRobot();
 
-  // Partículas
   for (let p of particles) { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3.5 * p.life, 0, Math.PI * 2); ctx.fill(); }
   ctx.globalAlpha = 1;
 
