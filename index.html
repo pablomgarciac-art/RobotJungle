@@ -29,7 +29,6 @@ html, body {
   border-radius: 0px; 
   box-shadow: 0 0 40px rgba(0,200,100,0.15); 
 }
-/* Mensaje de girar pantalla - SOLO VISIBLE EN MÓVIL */
 #rotate-msg {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -73,21 +72,69 @@ html, body {
   background: rgba(0,0,0,0.65); 
   border: 1.5px solid rgba(100,220,120,0.5); 
   border-radius: 8px; 
-  padding: 6px 12px; 
+  padding: 8px 16px; 
   color: #fff; 
   line-height: 1.9; 
   font-weight: bold; 
   letter-spacing: 1px; 
   backdrop-filter: blur(2px);
 }
-.hud-label { font-size: clamp(7px,1.2vw,10px); color: #80cbc4; font-weight: normal; letter-spacing: 2px; display: block; margin-bottom: 1px; }
-.hud-val { font-size: clamp(12px,2.2vw,18px); font-weight: bold; }
-#barra-bat { width: 90px; height: 8px; background: #1a2a1a; border-radius: 5px; margin-top: 4px; border: 1px solid rgba(100,220,120,0.3); }
-#fill-bat { height: 8px; border-radius: 5px; background: #2ecc71; width: 0%; transition: width 0.25s, background 0.3s; }
-#msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%,-50%); font-size: clamp(13px,2.5vw,17px); font-weight: bold; pointer-events: none; display: none; text-align: center; text-shadow: 2px 2px #000; border-radius: 8px; padding: 10px 20px; white-space: nowrap; z-index: 10; }
-#score-pop { position: absolute; pointer-events: none; font-size: clamp(14px,2.5vw,20px); font-weight: bold; color: #f1c40f; text-shadow: 2px 2px #000; display: none; z-index: 20; transition: none; }
+.hud-label { 
+  font-size: 14px; 
+  color: #80cbc4; 
+  font-weight: normal; 
+  letter-spacing: 2px; 
+  display: block; 
+  margin-bottom: 1px; 
+}
+.hud-val { 
+  font-size: 22px; 
+  font-weight: bold; 
+}
+#barra-bat { 
+  width: 120px; 
+  height: 10px; 
+  background: #1a2a1a; 
+  border-radius: 5px; 
+  margin-top: 4px; 
+  border: 1px solid rgba(100,220,120,0.3); 
+}
+#fill-bat { 
+  height: 10px; 
+  border-radius: 5px; 
+  background: #2ecc71; 
+  width: 0%; 
+  transition: width 0.25s, background 0.3s; 
+}
+#msg { 
+  position: absolute; 
+  top: 40%; 
+  left: 50%; 
+  transform: translate(-50%,-50%); 
+  font-size: 20px; 
+  font-weight: bold; 
+  pointer-events: none; 
+  display: none; 
+  text-align: center; 
+  text-shadow: 2px 2px #000; 
+  border-radius: 8px; 
+  padding: 10px 20px; 
+  white-space: nowrap; 
+  z-index: 10; 
+}
+#score-pop { 
+  position: absolute; 
+  pointer-events: none; 
+  font-size: 24px; 
+  font-weight: bold; 
+  color: #f1c40f; 
+  text-shadow: 2px 2px #000; 
+  display: none; 
+  z-index: 20; 
+  transition: none; 
+}
 
-/* Controles fuera del canvas */
+/* Controles */
 #ctrl { 
   width: 100%;
   display: flex; 
@@ -121,10 +168,20 @@ html, body {
   transform: scale(0.9);
   border-color: #aaffaa;
 }
+
+/* Ajustes responsive */
 @media (max-width: 600px) {
   .btn-ctrl { width: 60px; height: 60px; font-size: 28px; }
   #ctrl { padding: 8px 12px; }
+  .hud-box { padding: 4px 8px; }
+  .hud-label { font-size: 9px; }
+  .hud-val { font-size: 14px; }
+  #barra-bat { width: 70px; height: 6px; }
+  #fill-bat { height: 6px; }
+  #msg { font-size: 13px; }
+  #score-pop { font-size: 16px; }
 }
+
 @media (pointer: coarse) { 
   #ctrl { display: flex !important; } 
 }
@@ -180,12 +237,10 @@ const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
                  ('ontouchstart' in window) || 
                  (navigator.maxTouchPoints > 0);
 
-// Solo forzar orientación en móviles
 const rotateMsg = document.getElementById('rotate-msg');
 let isLandscape = true;
 
 function checkOrientation() {
-  // En PC (no móvil), ignorar completamente la orientación
   if (!isMobile) {
     rotateMsg.style.display = 'none';
     isLandscape = true;
@@ -212,9 +267,23 @@ function checkOrientation() {
   }
 }
 
-window.addEventListener('resize', () => { checkOrientation(); resize(); });
-window.addEventListener('orientationchange', () => { setTimeout(checkOrientation, 50); });
-checkOrientation();
+// Ejecutar después de que todo esté cargado
+window.addEventListener('load', () => {
+  checkOrientation();
+  resize();
+});
+
+window.addEventListener('resize', () => { 
+  checkOrientation(); 
+  resize(); 
+});
+
+window.addEventListener('orientationchange', () => { 
+  setTimeout(() => {
+    checkOrientation();
+    resize();
+  }, 50); 
+});
 
 // ── AUDIO ENGINE ──────────────────────────────────────────────────────────────
 let AC = null;
@@ -298,7 +367,7 @@ function sfxFire() {
   playTone(150,'sawtooth',0.06,0.2); playTone(100,'sawtooth',0.08,0.18,0.03);
 }
 
-// ── MÚSICA AMBIENTAL (PÁJAROS, VIENTO, LOBOS) ──────────────────────────────
+// ── MÚSICA AMBIENTAL ────────────────────────────────────────────────────────
 let musicNodes = [];
 let musicPlaying = false;
 
@@ -307,7 +376,6 @@ function startJungleMusic() {
   const ac = getAC(); if (!ac) return;
   musicPlaying = true;
 
-  // 1. VIENTO SUAVE
   function schedWind() {
     if (!musicPlaying) return;
     const ac2 = getAC(); if (!ac2) return;
@@ -343,7 +411,6 @@ function startJungleMusic() {
     } catch(e) {}
   }
 
-  // 2. PAJARILLOS
   function schedBird() {
     if (!musicPlaying) return;
     const ac3 = getAC(); if (!ac3) return;
@@ -373,7 +440,6 @@ function startJungleMusic() {
     musicNodes.push({ cancel: () => clearTimeout(id) });
   }
 
-  // 3. AULLIDO DE LOBO
   function schedWolf() {
     if (!musicPlaying) return;
     const ac4 = getAC(); if (!ac4) return;
@@ -404,7 +470,6 @@ function startJungleMusic() {
     musicNodes.push({ cancel: () => clearTimeout(id) });
   }
 
-  // 4. GRILLOS
   function schedCricket() {
     if (!musicPlaying) return;
     const ac5 = getAC(); if (!ac5) return;
@@ -463,7 +528,12 @@ function resize() {
   let canvasHeight = canvasWidth / targetRatio;
   
   const ctrlHeight = document.getElementById('ctrl').offsetHeight || 80;
-  const maxHeight = winHeight - ctrlHeight - 20;
+  // Limitar tamaño máximo en PC para que no sea exagerado
+  const maxWidth = isMobile ? winWidth : Math.min(winWidth, 1400);
+  const maxHeight = isMobile ? winHeight - ctrlHeight - 20 : Math.min(winHeight - ctrlHeight - 20, 660);
+  
+  canvasWidth = Math.min(canvasWidth, maxWidth);
+  canvasHeight = Math.min(canvasHeight, maxHeight);
   
   if (canvasHeight > maxHeight) {
     canvasHeight = maxHeight;
@@ -473,8 +543,6 @@ function resize() {
   wrap.style.width = canvasWidth + 'px';
   wrap.style.height = canvasHeight + 'px';
 }
-window.addEventListener('resize', resize);
-resize();
 
 // ── CONTROLES ─────────────────────────────────────────────────────────────────
 const K = {};
@@ -497,6 +565,7 @@ let active = false, fr = 0, camX = 0, vidas = 3, bat = 0, fase = 1, score = 0;
 let shake = 0, flash = 0, particles = [], stars = [], titleFr = 0, titleRaf, raf2;
 let scorePops = [];
 let distanceSigns = [];
+let sharks = []; // Tiburones
 
 const POINTS = { boar: 100, snake: 150, lion: 200, bear: 250, plant: 0 };
 
@@ -598,10 +667,22 @@ function buildWorld(f) {
   platforms = [{ x: 0, y: 430, w: 750, type: 'grass' }];
   enemies = []; batteries = []; plants = []; fires = []; projectiles = [];
   distanceSigns = [];
+  sharks = [];
 
-  // Crear carteles cada 100 metros (100 píxeles = 100m)
-  for (let d = 100; d < 1000; d += 100) {
-    distanceSigns.push({ distance: d, x: d * 2.5, triggered: false });
+  // Carteles cada 200 metros
+  for (let d = 200; d < 1000; d += 200) {
+    distanceSigns.push({ distance: d, x: d * 2.5 });
+  }
+
+  // Tiburones aleatorios
+  for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
+    sharks.push({
+      x: 500 + Math.random() * L,
+      y: 470,
+      speed: 0.5 + Math.random() * 0.8,
+      direction: Math.random() > 0.5 ? 1 : -1,
+      finOffset: Math.random() * Math.PI * 2
+    });
   }
 
   let cx = 820;
@@ -618,7 +699,6 @@ function buildWorld(f) {
       enemies.push({ x: cx + 60, y: y - 44, w: 46, h: 44, d: 1, lL: cx, lR: cx + w - 48, t, hit: 0 });
     }
 
-    // Plantas solo en plataformas grandes y con baja probabilidad
     if (w > 250 && Math.random() > 0.75) {
       const px = cx + 30 + Math.random() * (w - 80);
       plants.push({ x: px, y: y - 60, w: 30, h: 60, shootTimer: Math.floor(Math.random() * 180), shootInterval: 120 + Math.floor(Math.random() * 80), open: false, openTimer: 0 });
@@ -641,7 +721,6 @@ function buildWorld(f) {
 
 // ── UI ────────────────────────────────────────────────────────────────────────
 function start() {
-  // En móvil, verificar orientación antes de empezar
   if (isMobile && !isLandscape) {
     rotateMsg.style.display = 'flex';
     return;
@@ -728,7 +807,6 @@ function nextPhase() {
 // ── GAME LOOP ─────────────────────────────────────────────────────────────────
 function loop() { 
   if (!active) return;
-  // En móvil, si no está en landscape, pausar
   if (isMobile && !isLandscape) return;
   cancelAnimationFrame(raf2); update(); draw(); raf2 = requestAnimationFrame(loop); 
 }
@@ -746,16 +824,16 @@ function update() {
     }
   }
   
-  // Verificar carteles de distancia
-  for (let sign of distanceSigns) {
-    if (!sign.triggered && R.x >= sign.x) {
-      sign.triggered = true;
-      showMsg(`🌿 ${sign.distance} metros 🌿`, '#a5d6a5', 2000);
-      sfxScore(50);
-    }
-  }
-  
   if (R.x < meta.x + meta.w && R.x + R.w > meta.x && R.y < meta.y + meta.h && R.y + R.h > meta.y) nextPhase();
+
+  // Actualizar tiburones
+  for (let shark of sharks) {
+    shark.x += shark.speed * shark.direction;
+    if (shark.x < camX - 200 || shark.x > camX + 1300) {
+      shark.direction *= -1;
+    }
+    shark.finOffset += 0.02;
+  }
 
   for (let i = enemies.length - 1; i >= 0; i--) {
     let en = enemies[i];
@@ -863,19 +941,47 @@ function drawRobot() {
 
 function drawSignPost(sign) {
   const x = sign.x, y = 380;
+  // Palo
   ctx.fillStyle = '#5d4037';
   ctx.fillRect(x - 3, y - 40, 6, 80);
+  // Tablón
   ctx.fillStyle = '#8d6e63';
   ctx.strokeStyle = '#4e342e';
   ctx.lineWidth = 2;
-  roundRect(ctx, x - 30, y - 55, 60, 30, 4);
+  roundRect(ctx, x - 35, y - 55, 70, 30, 4);
   ctx.fill();
   ctx.stroke();
+  // Texto
   ctx.fillStyle = '#3e2723';
-  ctx.font = 'bold 14px Courier New';
+  ctx.font = 'bold 16px Courier New';
   ctx.textAlign = 'center';
   ctx.fillText(sign.distance + 'm', x, y - 33);
   ctx.textAlign = 'left';
+}
+
+function drawShark(shark) {
+  const x = shark.x, y = shark.y, dir = shark.direction;
+  const finWave = Math.sin(shark.finOffset) * 3;
+  
+  ctx.save();
+  ctx.translate(x, y);
+  if (dir < 0) ctx.scale(-1, 1);
+  
+  // Aleta dorsal (visible fuera del agua)
+  ctx.fillStyle = '#2c3e50';
+  ctx.beginPath();
+  ctx.moveTo(-15, -25);
+  ctx.lineTo(-5, -45 + finWave);
+  ctx.lineTo(10, -25);
+  ctx.fill();
+  
+  // Sombra del cuerpo bajo el agua
+  ctx.fillStyle = 'rgba(44, 62, 80, 0.3)';
+  ctx.beginPath();
+  ctx.ellipse(0, -5, 30, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.restore();
 }
 
 function drawBoar(en) {
@@ -1063,6 +1169,10 @@ function draw() {
   ctx.fillStyle = wg; ctx.fillRect(camX, 458, 1100, 62);
   ctx.fillStyle = 'rgba(100,180,255,0.11)';
   for (let i = 0; i < 10; i++) { let wx = camX + i * 120 + (Math.sin(fr * 0.04 + i) * 22); ctx.fillRect(wx, 463 + Math.sin(fr * 0.05 + i) * 4, 80, 3); }
+  
+  // Dibujar tiburones
+  sharks.forEach(shark => drawShark(shark));
+  
   for (let f of fish) {
     f.x += f.v * f.s; if (f.x > camX + 1200) f.x = camX - 20; if (f.x < camX - 20) f.x = camX + 1200;
     ctx.fillStyle = 'rgba(100,180,255,0.5)'; ctx.save(); ctx.translate(f.x, f.y); if (f.s < 0) ctx.scale(-1, 1);
@@ -1075,7 +1185,8 @@ function draw() {
   platforms.forEach(p => drawPlatform(p));
   drawWorkshop();
   
-  distanceSigns.forEach(sign => { if (!sign.triggered) drawSignPost(sign); });
+  // Dibujar carteles (siempre visibles)
+  distanceSigns.forEach(sign => drawSignPost(sign));
   
   plants.forEach(pl => drawPlant(pl));
   fires.forEach(fi => drawFire(fi));
@@ -1110,8 +1221,15 @@ function draw() {
   ctx.restore(); ctx.restore();
 }
 
+// Iniciar
 cvs.addEventListener('click', () => { if (!active) start(); });
 titleLoop();
+
+// Asegurar que la orientación se verifique al cargar
+setTimeout(() => {
+  checkOrientation();
+  resize();
+}, 100);
 </script>
 </body>
 </html>
