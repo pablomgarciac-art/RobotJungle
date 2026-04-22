@@ -74,23 +74,25 @@ html, body {
   flex-direction: row; 
   justify-content: space-between; 
   align-items: flex-start; 
-  gap: 8px; 
+  gap: 6px; 
   z-index: 15;
 }
 .hud-box { 
   background: rgba(0,0,0,0.7); 
   border: 2px solid rgba(100,220,120,0.5); 
   border-radius: 10px; 
-  padding: 8px 14px; 
+  padding: 6px 10px; 
   color: #fff; 
   line-height: 1.4; 
   font-weight: bold; 
   letter-spacing: 1px; 
   backdrop-filter: blur(4px);
-  min-width: 100px;
+  min-width: 95px;
+  flex: 1;
+  text-align: center;
 }
 .hud-label { 
-  font-size: 11px; 
+  font-size: 10px; 
   color: #80cbc4; 
   font-weight: normal; 
   letter-spacing: 2px; 
@@ -99,21 +101,21 @@ html, body {
   text-transform: uppercase;
 }
 .hud-val { 
-  font-size: 20px; 
+  font-size: 18px; 
   font-weight: bold; 
 }
 #barra-bat { 
-  width: 160px; 
-  height: 12px; 
+  width: 100%; 
+  height: 10px; 
   background: #1a2a1a; 
-  border-radius: 6px; 
+  border-radius: 5px; 
   margin-top: 4px; 
   border: 1px solid rgba(100,220,120,0.3); 
   overflow: hidden;
 }
 #fill-bat { 
-  height: 12px; 
-  border-radius: 6px; 
+  height: 10px; 
+  border-radius: 5px; 
   background: linear-gradient(90deg, #3498db, #2ecc71);
   width: 100%; 
   transition: width 0.3s, background 0.3s; 
@@ -164,8 +166,8 @@ html, body {
   pointer-events: auto;
 }
 .btn-ctrl { 
-  width: 65px; 
-  height: 65px; 
+  width: 60px; 
+  height: 60px; 
   background: rgba(20,30,20,0.75); 
   border: 3px solid rgba(180,220,100,0.6); 
   border-radius: 50%; 
@@ -173,7 +175,7 @@ html, body {
   display: flex; 
   justify-content: center; 
   align-items: center; 
-  font-size: 30px; 
+  font-size: 28px; 
   font-weight: bold;
   pointer-events: auto; 
   backdrop-filter: blur(4px);
@@ -188,13 +190,13 @@ html, body {
 
 /* HUD responsive */
 @media (max-width: 600px) {
-  .hud-box { padding: 5px 8px; min-width: 70px; }
-  .hud-label { font-size: 8px; }
-  .hud-val { font-size: 14px; }
-  #barra-bat { width: 100px; height: 8px; }
-  #fill-bat { height: 8px; }
-  .btn-ctrl { width: 55px; height: 55px; font-size: 26px; }
-  #ctrl { padding: 6px 12px; }
+  .hud-box { padding: 4px 6px; min-width: 60px; }
+  .hud-label { font-size: 7px; }
+  .hud-val { font-size: 13px; }
+  #barra-bat { height: 6px; }
+  #fill-bat { height: 6px; }
+  .btn-ctrl { width: 50px; height: 50px; font-size: 24px; }
+  #ctrl { padding: 6px 10px; }
   #msg { font-size: 14px; }
   #score-pop { font-size: 18px; }
 }
@@ -222,20 +224,20 @@ html, body {
         <span class="hud-label">❤️ VIDAS</span>
         <span class="hud-val" id="vidas">❤️❤️❤️</span>
       </div>
-      <div class="hud-box" style="text-align:center; border-color: rgba(155,89,182,0.6);">
-        <span class="hud-label">🔫 MUNICIÓN</span>
-        <span class="hud-val" id="ammo" style="color:#bb8fce;">0</span>
-      </div>
       <div class="hud-box" style="text-align:center;">
         <span class="hud-label">🔋 BATERÍA</span>
         <span class="hud-val" id="bpct">100%</span>
         <div id="barra-bat"><div id="fill-bat"></div></div>
       </div>
+      <div class="hud-box" style="text-align:center; border-color: rgba(155,89,182,0.6);">
+        <span class="hud-label">🔫 MUNICIÓN</span>
+        <span class="hud-val" id="ammo" style="color:#bb8fce;">0</span>
+      </div>
       <div class="hud-box" style="text-align:center; border-color: rgba(241,196,15,0.6);">
         <span class="hud-label">🏆 PUNTOS</span>
         <span class="hud-val" id="score" style="color:#f1c40f;">0</span>
       </div>
-      <div class="hud-box" style="text-align:right;">
+      <div class="hud-box" style="text-align:center;">
         <span class="hud-label">🌿 FASE</span>
         <span class="hud-val" id="fase">1</span>
       </div>
@@ -249,7 +251,7 @@ html, body {
       <div class="btn-ctrl" id="bL">◀</div>
       <div class="btn-ctrl" id="bR">▶</div>
     </div>
-    <div style="display: flex; gap: 12px;">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
       <div class="btn-ctrl" id="bShoot" style="background:rgba(155,89,182,0.3); border-color:rgba(155,89,182,0.8);">💥</div>
       <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.3); border-color:rgba(46,204,113,0.8);">▲</div>
     </div>
@@ -560,15 +562,13 @@ function resize() {
   const winHeight = window.innerHeight;
   
   const targetRatio = 1100 / 520;
-  let canvasWidth = winWidth;
+  // En móvil, reducir un poco el ancho para que los botones no tapen
+  const widthFactor = isMobile ? 0.92 : 0.9;
+  let canvasWidth = winWidth * widthFactor;
   let canvasHeight = canvasWidth / targetRatio;
   
   const ctrlHeight = document.getElementById('ctrl').offsetHeight || 80;
-  const maxWidth = isMobile ? winWidth * 0.95 : Math.min(winWidth * 0.9, 1400);
   const maxHeight = isMobile ? winHeight - ctrlHeight - 30 : Math.min(winHeight * 0.85, 700);
-  
-  canvasWidth = Math.min(canvasWidth, maxWidth);
-  canvasHeight = Math.min(canvasHeight, maxHeight);
   
   if (canvasHeight > maxHeight) {
     canvasHeight = maxHeight;
@@ -724,11 +724,16 @@ function buildWorld(f) {
     let type = Math.random() > 0.5 ? 'grass' : 'stone';
     platforms.push({ x: cx, y, w, type });
     
-    if (Math.random() > 0.38) batteries.push({ x: cx + w / 2 - 10, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
+    // Baterías (siempre en el centro)
+    if (Math.random() > 0.38) {
+      batteries.push({ x: cx + w / 2 - 10, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
+    }
     
-    // Cajas de munición (30% de probabilidad)
+    // Cajas de munición (desplazadas para no solaparse con baterías)
     if (Math.random() > 0.7) {
-      ammoBoxes.push({ x: cx + w / 2 - 12, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
+      // Colocar a la izquierda o derecha de la batería
+      const offset = (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 20);
+      ammoBoxes.push({ x: cx + w / 2 - 12 + offset, y: y - 52, got: false, bob: Math.random() * Math.PI * 2 });
     }
 
     if (Math.random() > 0.5) {
@@ -1172,7 +1177,9 @@ function update() {
     if (p.life <= 0) particles.splice(i, 1);
   }
 
-  camX = R.x - 270; if (camX < 0) camX = 0;
+  // Ajustar cámara para que el robot esté más centrado y no lo tapen los botones
+  camX = R.x - (isMobile ? 350 : 270); 
+  if (camX < 0) camX = 0;
   
   if (R.y > 545) { 
     onWaterDeath(); 
