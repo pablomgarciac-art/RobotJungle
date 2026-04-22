@@ -57,54 +57,57 @@ html, body {
 }
 #hud { 
   position: absolute; 
-  top: 10px; 
-  left: 10px; 
-  right: 10px; 
+  top: 12px; 
+  left: 12px; 
+  right: 12px; 
   display: none; 
   pointer-events: none; 
   flex-direction: row; 
   justify-content: space-between; 
   align-items: flex-start; 
-  gap: 6px; 
+  gap: 8px; 
   z-index: 15;
 }
 .hud-box { 
-  background: rgba(0,0,0,0.65); 
-  border: 1.5px solid rgba(100,220,120,0.5); 
-  border-radius: 8px; 
-  padding: 8px 16px; 
+  background: rgba(0,0,0,0.7); 
+  border: 2px solid rgba(100,220,120,0.5); 
+  border-radius: 10px; 
+  padding: 8px 14px; 
   color: #fff; 
-  line-height: 1.9; 
+  line-height: 1.4; 
   font-weight: bold; 
   letter-spacing: 1px; 
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
+  min-width: 100px;
 }
 .hud-label { 
-  font-size: 14px; 
+  font-size: 11px; 
   color: #80cbc4; 
   font-weight: normal; 
   letter-spacing: 2px; 
   display: block; 
-  margin-bottom: 1px; 
+  margin-bottom: 2px; 
+  text-transform: uppercase;
 }
 .hud-val { 
-  font-size: 22px; 
+  font-size: 20px; 
   font-weight: bold; 
 }
 #barra-bat { 
-  width: 120px; 
-  height: 10px; 
+  width: 160px; 
+  height: 12px; 
   background: #1a2a1a; 
-  border-radius: 5px; 
+  border-radius: 6px; 
   margin-top: 4px; 
   border: 1px solid rgba(100,220,120,0.3); 
+  overflow: hidden;
 }
 #fill-bat { 
-  height: 10px; 
-  border-radius: 5px; 
-  background: #2ecc71; 
-  width: 0%; 
-  transition: width 0.25s, background 0.3s; 
+  height: 12px; 
+  border-radius: 6px; 
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  width: 100%; 
+  transition: width 0.3s, background 0.3s; 
 }
 #msg { 
   position: absolute; 
@@ -168,16 +171,17 @@ html, body {
   border-color: #aaffaa;
 }
 
+/* HUD responsive - mismo estilo pero más compacto en móvil */
 @media (max-width: 600px) {
+  .hud-box { padding: 5px 8px; min-width: 70px; }
+  .hud-label { font-size: 8px; }
+  .hud-val { font-size: 14px; }
+  #barra-bat { width: 120px; height: 8px; }
+  #fill-bat { height: 8px; }
   .btn-ctrl { width: 60px; height: 60px; font-size: 28px; }
   #ctrl { padding: 8px 12px; }
-  .hud-box { padding: 4px 8px; }
-  .hud-label { font-size: 9px; }
-  .hud-val { font-size: 14px; }
-  #barra-bat { width: 70px; height: 6px; }
-  #fill-bat { height: 6px; }
-  #msg { font-size: 13px; }
-  #score-pop { font-size: 16px; }
+  #msg { font-size: 14px; }
+  #score-pop { font-size: 18px; }
 }
 
 @media (pointer: coarse) { 
@@ -200,20 +204,20 @@ html, body {
   <canvas id="c"></canvas>
   <div id="hud">
     <div class="hud-box">
-      <span class="hud-label">VIDAS</span>
+      <span class="hud-label">❤️ VIDAS</span>
       <span class="hud-val" id="vidas">❤️❤️❤️</span>
     </div>
     <div class="hud-box" style="text-align:center;">
-      <span class="hud-label">BATERÍA</span>
-      <span class="hud-val" id="bpct">0%</span>
+      <span class="hud-label">🔋 BATERÍA</span>
+      <span class="hud-val" id="bpct">100%</span>
       <div id="barra-bat"><div id="fill-bat"></div></div>
     </div>
     <div class="hud-box" style="text-align:center; border-color: rgba(241,196,15,0.6);">
-      <span class="hud-label">PUNTOS</span>
+      <span class="hud-label">🏆 PUNTOS</span>
       <span class="hud-val" id="score" style="color:#f1c40f;">0</span>
     </div>
     <div class="hud-box" style="text-align:right;">
-      <span class="hud-label">FASE</span>
+      <span class="hud-label">🌿 FASE</span>
       <span class="hud-val" id="fase">1</span>
     </div>
   </div>
@@ -326,7 +330,10 @@ function playTone(freq, type, duration, vol = 0.3, delay = 0) {
 }
 
 function sfxDamage() {
-  playTone(180,'sawtooth',0.12,0.4); playTone(120,'sawtooth',0.18,0.35,0.08); playTone(80,'square',0.25,0.3,0.18);
+  playTone(180,'sawtooth',0.12,0.35); playTone(120,'sawtooth',0.15,0.3,0.06);
+}
+function sfxDead() {
+  playTone(100,'sawtooth',0.3,0.4); playTone(80,'square',0.4,0.35,0.1); playTone(60,'sawtooth',0.5,0.3,0.2);
 }
 function sfxBattery() {
   playTone(440,'sine',0.08,0.25); playTone(550,'sine',0.08,0.25,0.07); playTone(660,'sine',0.1,0.25,0.14); playTone(880,'sine',0.12,0.2,0.22);
@@ -560,8 +567,9 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => K[e.code] = false);
 
 // ── ESTADO ────────────────────────────────────────────────────────────────────
-let active = false, fr = 0, camX = 0, vidas = 3, bat = 0, fase = 1, score = 0;
-let shake = 0, flash = 0, particles = [], stars = [], titleFr = 0, titleRaf, raf2;
+let active = false, fr = 0, camX = 0, vidas = 3, bat = 100, fase = 1, score = 0;
+let shake = 0, flash = 0, invulnerable = 0;
+let particles = [], stars = [], titleFr = 0, titleRaf, raf2;
 let scorePops = [];
 let distanceSigns = [];
 let sharks = [];
@@ -670,7 +678,6 @@ function buildWorld(f) {
   sharks = [];
   birds = [];
 
-  // Crear plataformas primero
   let cx = 820;
   while (cx < L) {
     let gap = 100 + Math.random() * 120, w = 200 + Math.random() * 320, y = 290 + Math.random() * 110;
@@ -698,11 +705,9 @@ function buildWorld(f) {
     cx += w + gap;
   }
 
-  // Carteles de distancia SOBRE PLATAFORMAS
   let targetDistances = [200, 400, 600, 800];
   for (let dist of targetDistances) {
     let targetX = dist * 2.5;
-    // Buscar la plataforma más cercana a targetX
     let bestPlatform = null;
     let minDist = Infinity;
     for (let p of platforms) {
@@ -719,12 +724,11 @@ function buildWorld(f) {
       distanceSigns.push({ 
         distance: dist, 
         x: signX, 
-        y: bestPlatform.y - 40 // Sobre la plataforma
+        y: bestPlatform.y - 40
       });
     }
   }
 
-  // Tiburones (más visibles)
   for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
     sharks.push({
       x: 500 + Math.random() * L,
@@ -735,7 +739,6 @@ function buildWorld(f) {
     });
   }
 
-  // Pájaros malvados (1-2 por fase)
   let numBirds = 1 + Math.floor(Math.random() * 2);
   for (let i = 0; i < numBirds; i++) {
     birds.push({
@@ -765,7 +768,7 @@ function start() {
   }
   cancelAnimationFrame(titleRaf);
   unlockAudio(); getAC();
-  active = true; vidas = 3; bat = 0; camX = 0; fase = 1; score = 0;
+  active = true; vidas = 3; bat = 100; camX = 0; fase = 1; score = 0; invulnerable = 0;
   R.x = 60; R.y = 200; R.vx = 0; R.vy = 0; particles = []; scorePops = [];
   buildWorld(fase);
   document.getElementById('hud').style.display = 'flex';
@@ -783,7 +786,9 @@ function updateUI() {
   document.getElementById('score').innerText = score;
   const f = document.getElementById('fill-bat');
   f.style.width = bat + '%';
-  f.style.background = bat >= 80 ? '#f1c40f' : bat >= 50 ? '#2ecc71' : '#3498db';
+  if (bat > 60) f.style.background = 'linear-gradient(90deg, #3498db, #2ecc71)';
+  else if (bat > 30) f.style.background = 'linear-gradient(90deg, #f39c12, #f1c40f)';
+  else f.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
 }
 
 function showMsg(txt, color, dur = 1300) {
@@ -823,14 +828,56 @@ function spawnParticles(x, y, color, n = 12) {
   }
 }
 
-function onDamage() {
-  shake = 25; sfxDamage(); spawnParticles(R.x + 19, R.y + 25, '#ff4444', 18);
-  showMsg('¡ESCACHARRADO!', '#ff4444');
-  vidas--; updateUI(); R.vx = 0;
+function takeDamage(amount = 25) {
+  if (invulnerable > 0) return;
+  
+  bat = Math.max(0, bat - amount);
+  invulnerable = 45;
+  shake = 20;
+  flash = 15;
+  sfxDamage();
+  spawnParticles(R.x + 19, R.y + 25, '#ff4444', 12);
+  
+  if (bat <= 0) {
+    // Perder vida
+    vidas--;
+    sfxDead();
+    spawnParticles(R.x + 19, R.y + 25, '#ff0000', 25);
+    showMsg('💀 ¡VIDA PERDIDA! 💀', '#ff4444', 1500);
+    
+    if (vidas <= 0) {
+      stopJungleMusic(); active = false;
+      updateUI();
+      setTimeout(() => { document.getElementById('hud').style.display = 'none'; titleFr = 0; titleLoop(); }, 900);
+      return;
+    }
+    
+    bat = 50; // Recuperar media batería al perder vida
+    R.x = 60; R.y = 200; R.vx = 0; R.vy = 0;
+    camX = 0;
+  }
+  
+  updateUI();
+}
+
+function onWaterDeath() {
+  // Caer al agua es muerte instantánea
+  vidas--;
+  sfxDead();
+  spawnParticles(R.x + 19, R.y + 25, '#003366', 30);
+  showMsg('💧 ¡AHOGADO! 💧', '#3498db', 1500);
+  
   if (vidas <= 0) {
     stopJungleMusic(); active = false;
+    updateUI();
     setTimeout(() => { document.getElementById('hud').style.display = 'none'; titleFr = 0; titleLoop(); }, 900);
+    return;
   }
+  
+  bat = 50;
+  R.x = 60; R.y = 200; R.vx = 0; R.vy = 0;
+  camX = 0;
+  updateUI();
 }
 
 function nextPhase() {
@@ -850,6 +897,9 @@ function loop() {
 }
 
 function update() {
+  if (invulnerable > 0) invulnerable--;
+  if (flash > 0) flash--;
+  
   if (K['ArrowRight'] || K['KeyD']) { R.vx += R.spd; R.dir = 1; }
   if (K['ArrowLeft'] || K['KeyA']) { R.vx -= R.spd; R.dir = -1; }
   R.vx *= R.fri; R.x += R.vx;
@@ -864,7 +914,7 @@ function update() {
   
   if (R.x < meta.x + meta.w && R.x + R.w > meta.x && R.y < meta.y + meta.h && R.y + R.h > meta.y) nextPhase();
 
-  // Actualizar tiburones
+  // Tiburones
   for (let shark of sharks) {
     shark.x += shark.speed * shark.direction;
     if (shark.x < camX - 300 || shark.x > camX + 1400) {
@@ -873,7 +923,7 @@ function update() {
     shark.finOffset += 0.02;
   }
 
-  // Actualizar pájaros
+  // Pájaros
   for (let i = birds.length - 1; i >= 0; i--) {
     let b = birds[i];
     if (b.hit > 0) b.hit--;
@@ -888,23 +938,22 @@ function update() {
       if (b.x < camX - 100 || b.x > camX + 1200) b.vx *= -1;
     }
     
-    // Colisión con robot
     if (R.x < b.x + b.w && R.x + R.w > b.x && R.y < b.y + b.h && R.y + R.h > b.y) {
       if (R.vy > 1.5 && R.y + R.h < b.y + b.h * 0.5) {
-        // Saltar sobre el pájaro
         addScore(200, b.x + 20, b.y);
         spawnParticles(b.x + 20, b.y + 15, '#8B4513', 14);
         birds.splice(i, 1);
         sfxStomp();
         R.vy = -10;
       } else if (b.hit === 0) {
-        onDamage();
+        takeDamage(25);
         b.hit = 40;
         sfxBird();
       }
     }
   }
 
+  // Enemigos terrestres
   for (let i = enemies.length - 1; i >= 0; i--) {
     let en = enemies[i];
     let spd = en.t === 'bear' ? 1.6 : en.t === 'lion' ? 3.2 : 2.4;
@@ -916,20 +965,32 @@ function update() {
         spawnParticles(en.x + 23, en.y + 22, { boar: '#8B5E3C', snake: '#2d8c3c', lion: '#c17f24', bear: '#5d4037' }[en.t] || '#888', 16);
         addScore(pts, en.x + 23, en.y);
         enemies.splice(i, 1); sfxStomp(); R.vy = -10;
-      } else if (en.hit === 0) { onDamage(); en.hit = 50; R.x += R.dir < 0 ? 95 : -95; }
+      } else if (en.hit === 0) { 
+        takeDamage(25);
+        en.hit = 50; 
+        R.x += R.dir < 0 ? 95 : -95;
+      }
     }
   }
 
+  // Baterías
   for (let b of batteries) {
     b.bob += 0.08;
     if (!b.got && R.x < b.x + 20 && R.x + R.w > b.x && R.y < b.y + 26 && R.y + R.h > b.y) {
-      b.got = true; bat = Math.min(100, bat + 20);
+      b.got = true; bat = Math.min(100, bat + 25);
       sfxBattery(); spawnParticles(b.x + 10, b.y + 13, '#f1c40f', 12);
-      if (bat >= 100) { vidas++; bat = 0; flash = 55; sfxExtraLife(); showMsg('⚡ ¡VIDA EXTRA!', '#2ecc71', 1600); }
+      if (bat >= 100) { 
+        if (vidas < 5) vidas++; 
+        bat = 100; 
+        flash = 55; 
+        sfxExtraLife(); 
+        showMsg('⚡ ¡BATERÍA LLENA! +VIDA ⚡', '#2ecc71', 1600); 
+      }
       updateUI();
     }
   }
 
+  // Plantas
   for (let pl of plants) {
     pl.shootTimer--;
     if (pl.openTimer > 0) { pl.openTimer--; pl.open = pl.openTimer > 0; }
@@ -952,14 +1013,20 @@ function update() {
     }
   }
 
+  // Fuego
   for (let fi of fires) {
     fi.frame++;
     if (R.x < fi.x + fi.w - 4 && R.x + R.w > fi.x + 4 && R.y + R.h > fi.y + 8 && R.y < fi.y + fi.h) {
-      if (!fi.hit || fi.hit <= 0) { sfxFire(); onDamage(); fi.hit = 60; }
+      if (!fi.hit || fi.hit <= 0) { 
+        sfxFire(); 
+        takeDamage(20);
+        fi.hit = 60; 
+      }
     }
     if (fi.hit > 0) fi.hit--;
   }
 
+  // Proyectiles
   for (let i = projectiles.length - 1; i >= 0; i--) {
     let pr = projectiles[i];
     pr.x += pr.vx; pr.y += pr.vy; pr.life -= 0.008;
@@ -969,10 +1036,11 @@ function update() {
     if (R.x < pr.x + 8 && R.x + R.w > pr.x - 8 && R.y < pr.y + 8 && R.y + R.h > pr.y - 8) {
       spawnParticles(pr.x, pr.y, '#7bed3a', 8);
       projectiles.splice(i, 1);
-      onDamage();
+      takeDamage(25);
     }
   }
 
+  // Popups
   for (let i = scorePops.length - 1; i >= 0; i--) {
     scorePops[i].y += scorePops[i].vy; scorePops[i].life -= 0.025;
     if (scorePops[i].life <= 0) scorePops.splice(i, 1);
@@ -980,19 +1048,30 @@ function update() {
   if (scorePops.length > 0) renderScorePops();
   else document.getElementById('score-pop').style.display = 'none';
 
+  // Partículas
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.03;
     if (p.life <= 0) particles.splice(i, 1);
   }
 
   camX = R.x - 270; if (camX < 0) camX = 0;
-  if (R.y > 545) { onDamage(); R.y = 0; R.x -= 130; }
+  
+  // Muerte por agua
+  if (R.y > 545) { 
+    onWaterDeath(); 
+  }
   fr++;
 }
 
 // ── DIBUJO ────────────────────────────────────────────────────────────────────
 function drawRobot() {
   const rx = R.x, ry = R.y, walkCycle = R.land && Math.abs(R.vx) > 0.5 ? Math.sin(fr * 0.4) * 7 : 0;
+  
+  ctx.save();
+  if (invulnerable > 0 && (Math.floor(fr / 5) % 2 === 0)) {
+    ctx.globalAlpha = 0.5;
+  }
+  
   ctx.fillStyle = '#546e7a'; ctx.fillRect(rx + 14, ry - 16, 5, 12);
   ctx.fillStyle = '#ff1744'; ctx.beginPath(); ctx.arc(rx + 16, ry - 19, 6, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(255,23,68,0.35)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(rx + 16, ry - 19, 10, 0, Math.PI * 2); ctx.stroke();
@@ -1007,21 +1086,20 @@ function drawRobot() {
   ctx.fillStyle = '#455a64'; roundRect(ctx, rx + 4, ry + R.h - 16, 12, 16 + walkCycle, 3); ctx.fill(); roundRect(ctx, rx + R.w - 16, ry + R.h - 16, 12, 16 - walkCycle, 3); ctx.fill();
   ctx.fillStyle = '#37474f'; ctx.fillRect(rx + 2, ry + R.h + walkCycle, 14, 6); ctx.fillRect(rx + R.w - 16, ry + R.h - walkCycle, 14, 6);
   ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(rx + R.w / 2, ry + R.h + 8, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
+  
+  ctx.restore();
 }
 
 function drawSignPost(sign) {
   const x = sign.x, y = sign.y;
-  // Palo
   ctx.fillStyle = '#5d4037';
   ctx.fillRect(x - 4, y, 8, 50);
-  // Tablón
   ctx.fillStyle = '#8d6e63';
   ctx.strokeStyle = '#4e342e';
   ctx.lineWidth = 2;
   roundRect(ctx, x - 35, y - 15, 70, 30, 4);
   ctx.fill();
   ctx.stroke();
-  // Texto
   ctx.fillStyle = '#3e2723';
   ctx.font = 'bold 16px Courier New';
   ctx.textAlign = 'center';
@@ -1037,7 +1115,6 @@ function drawShark(shark) {
   ctx.translate(x, y);
   if (dir < 0) ctx.scale(-1, 1);
   
-  // Aleta dorsal (más grande y visible)
   ctx.fillStyle = '#2c3e50';
   ctx.beginPath();
   ctx.moveTo(-20, -20);
@@ -1046,7 +1123,6 @@ function drawShark(shark) {
   ctx.closePath();
   ctx.fill();
   
-  // Aleta con borde más claro
   ctx.strokeStyle = '#1a252f';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -1055,13 +1131,11 @@ function drawShark(shark) {
   ctx.lineTo(15, -20);
   ctx.stroke();
   
-  // Sombra del cuerpo bajo el agua
   ctx.fillStyle = 'rgba(44, 62, 80, 0.4)';
   ctx.beginPath();
   ctx.ellipse(0, -8, 35, 10, 0, 0, Math.PI * 2);
   ctx.fill();
   
-  // Ojo (visible sobre el agua)
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(10, -15, 3, 0, Math.PI * 2);
@@ -1079,22 +1153,18 @@ function drawBird(b) {
   ctx.save();
   ctx.translate(x, y);
   
-  // Alas batiendo
   const wingAngle = Math.sin(fr * 0.3) * 0.5;
   
-  // Cuerpo
   ctx.fillStyle = '#4a3728';
   ctx.beginPath();
   ctx.ellipse(0, 0, 20, 12, 0, 0, Math.PI * 2);
   ctx.fill();
   
-  // Cabeza
   ctx.fillStyle = '#5d4037';
   ctx.beginPath();
   ctx.arc(15, -8, 10, 0, Math.PI * 2);
   ctx.fill();
   
-  // Ojos malvados
   ctx.fillStyle = '#ff0000';
   ctx.beginPath();
   ctx.arc(18, -12, 3, 0, Math.PI * 2);
@@ -1104,7 +1174,6 @@ function drawBird(b) {
   ctx.arc(19, -13, 1.5, 0, Math.PI * 2);
   ctx.fill();
   
-  // Pico
   ctx.fillStyle = '#f57c00';
   ctx.beginPath();
   ctx.moveTo(24, -10);
@@ -1112,7 +1181,6 @@ function drawBird(b) {
   ctx.lineTo(24, -6);
   ctx.fill();
   
-  // Alas
   ctx.fillStyle = '#3e2723';
   ctx.save();
   ctx.translate(-5, -5);
@@ -1313,7 +1381,6 @@ function draw() {
   ctx.fillStyle = 'rgba(255,255,255,0.07)';
   for (let cl of clouds) { let cx2 = (cl.x - camX * 0.25 + 7000) % 1120; ctx.beginPath(); ctx.ellipse(cx2, cl.y, cl.w, 16, 0, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx2 + 22, cl.y - 12, cl.w * 0.6, 13, 0, 0, Math.PI * 2); ctx.fill(); }
 
-  // Pájaros (detrás de algunas cosas)
   ctx.save(); ctx.translate(-camX, 0);
   birds.forEach(b => { ctx.globalAlpha = b.hit > 0 ? 0.5 : 1; drawBird(b); });
   ctx.globalAlpha = 1;
@@ -1325,7 +1392,6 @@ function draw() {
   ctx.fillStyle = 'rgba(100,180,255,0.11)';
   for (let i = 0; i < 10; i++) { let wx = camX + i * 120 + (Math.sin(fr * 0.04 + i) * 22); ctx.fillRect(wx, 463 + Math.sin(fr * 0.05 + i) * 4, 80, 3); }
   
-  // Tiburones
   sharks.forEach(shark => drawShark(shark));
   
   for (let f of fish) {
@@ -1340,7 +1406,6 @@ function draw() {
   platforms.forEach(p => drawPlatform(p));
   drawWorkshop();
   
-  // Carteles (siempre visibles, sobre plataformas)
   distanceSigns.forEach(sign => drawSignPost(sign));
   
   plants.forEach(pl => drawPlant(pl));
@@ -1372,7 +1437,7 @@ function draw() {
   for (let p of particles) { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3.5 * p.life, 0, Math.PI * 2); ctx.fill(); }
   ctx.globalAlpha = 1;
 
-  if (flash > 0) { ctx.fillStyle = `rgba(46,204,113,${flash / 60})`; ctx.fillRect(R.x - 28, 0, R.w + 56, 520); flash--; }
+  if (flash > 0) { ctx.fillStyle = `rgba(255,50,50,${flash / 40})`; ctx.fillRect(R.x - 28, 0, R.w + 56, 520); }
   ctx.restore(); ctx.restore();
 }
 
