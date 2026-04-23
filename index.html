@@ -24,6 +24,7 @@ html, body {
   align-items: center;
   width: 100%;
   height: 100%;
+  position: relative;
 }
 #wrap { 
   position: relative; 
@@ -39,7 +40,10 @@ html, body {
 }
 #rotate-msg {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
   background: rgba(5, 15, 5, 0.95);
   display: none;
   justify-content: center;
@@ -72,7 +76,7 @@ html, body {
   pointer-events: none; 
   flex-direction: row; 
   justify-content: space-between; 
-  align-items: flex-start; 
+  align-items: stretch;
   gap: 4px; 
   z-index: 15;
 }
@@ -82,13 +86,16 @@ html, body {
   border-radius: 6px; 
   padding: 5px 6px; 
   color: #fff; 
-  line-height: 1.2; 
+  line-height: 1.3; 
   font-weight: bold; 
   letter-spacing: 1px; 
   backdrop-filter: blur(4px);
   min-width: 0;
   flex: 1;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .hud-label { 
   font-size: 12px; 
@@ -102,6 +109,7 @@ html, body {
 .hud-val { 
   font-size: 20px; 
   font-weight: bold; 
+  line-height: 1.2;
 }
 #barra-bat { 
   width: 100%; 
@@ -189,11 +197,11 @@ html, body {
   #ctrl-left, #ctrl-right { display: flex; }
   #ctrl { display: none; }
   
-  .hud-box { padding: 2px 4px; border-width: 1px; }
-  .hud-label { font-size: 6px; letter-spacing: 0.5px; }
-  .hud-val { font-size: 11px; }
-  #barra-bat { height: 4px; margin-top: 2px; }
-  #fill-bat { height: 4px; }
+  .hud-box { padding: 3px 4px; border-width: 1px; }
+  .hud-label { font-size: 7px; letter-spacing: 0.5px; }
+  .hud-val { font-size: 12px; }
+  #barra-bat { height: 5px; margin-top: 2px; }
+  #fill-bat { height: 5px; }
   #msg { font-size: 11px; padding: 4px 8px; }
   #score-pop { font-size: 14px; }
   
@@ -212,6 +220,12 @@ html, body {
 </style>
 </head>
 <body>
+<div id="rotate-msg">
+  <span>📱 → ↻</span>
+  🌿 GIRA LA PANTALLA 🌿<br>
+  <span style="font-size:14px; margin-top:15px; color:#80cbc4;">Juega en horizontal</span>
+</div>
+
 <div id="game-container">
   <div id="ctrl-left">
     <div class="btn-ctrl" id="bL">◀</div>
@@ -1270,18 +1284,15 @@ function drawSignPost(sign) {
   ctx.fillStyle = '#8d6e63';
   ctx.strokeStyle = '#4e342e';
   ctx.lineWidth = 2.5;
-  roundRect(ctx, x - 45, y - 20, 90, 35, 5);
+  roundRect(ctx, x - 40, y - 20, 80, 35, 5);
   ctx.fill();
   ctx.stroke();
   
+  // Solo los metros, centrados
   ctx.fillStyle = '#3e2723';
-  ctx.font = 'bold 15px Courier New';
+  ctx.font = 'bold 18px Courier New';
   ctx.textAlign = 'center';
-  ctx.fillText(sign.distance + 'm', x, y - 2);
-  
-  ctx.font = 'bold 12px Courier New';
-  ctx.fillStyle = '#3e2723';
-  ctx.fillText('TALLER →', x + 2, y + 14);
+  ctx.fillText(sign.distance + 'm', x, y + 3);
   
   ctx.textAlign = 'left';
 }
