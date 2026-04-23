@@ -65,24 +65,24 @@ html, body {
 }
 #hud { 
   position: absolute; 
-  top: 8px; 
-  left: 8px; 
-  right: 8px; 
+  top: 6px; 
+  left: 6px; 
+  right: 6px; 
   display: none; 
   pointer-events: none; 
   flex-direction: row; 
   justify-content: space-between; 
   align-items: flex-start; 
-  gap: 6px; 
+  gap: 4px; 
   z-index: 15;
 }
 .hud-box { 
   background: rgba(0,0,0,0.6); 
   border: 1.5px solid rgba(100,220,120,0.4); 
-  border-radius: 8px; 
-  padding: 6px 8px; 
+  border-radius: 6px; 
+  padding: 5px 6px; 
   color: #fff; 
-  line-height: 1.3; 
+  line-height: 1.2; 
   font-weight: bold; 
   letter-spacing: 1px; 
   backdrop-filter: blur(4px);
@@ -91,7 +91,7 @@ html, body {
   text-align: center;
 }
 .hud-label { 
-  font-size: 13px; 
+  font-size: 12px; 
   color: #80cbc4; 
   font-weight: normal; 
   letter-spacing: 1.5px; 
@@ -100,7 +100,7 @@ html, body {
   text-transform: uppercase;
 }
 .hud-val { 
-  font-size: 22px; 
+  font-size: 20px; 
   font-weight: bold; 
 }
 #barra-bat { 
@@ -147,7 +147,7 @@ html, body {
   transition: none; 
 }
 
-/* Controles móviles - compactos a los lados */
+/* Controles móviles */
 #ctrl-left, #ctrl-right {
   display: none;
   pointer-events: none;
@@ -158,22 +158,22 @@ html, body {
   padding: 0 5px;
 }
 .btn-ctrl { 
-  width: 50px; 
-  height: 50px; 
+  width: 60px; 
+  height: 60px; 
   background: rgba(15,25,15,0.6); 
-  border: 2px solid rgba(180,220,100,0.5); 
+  border: 2.5px solid rgba(180,220,100,0.5); 
   border-radius: 50%; 
   color: #e0f0e0; 
   display: flex; 
   justify-content: center; 
   align-items: center; 
-  font-size: 24px; 
+  font-size: 28px; 
   font-weight: bold;
   pointer-events: auto; 
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   transition: transform 0.05s, background 0.1s;
-  margin: 3px 0;
+  margin: 4px 0;
 }
 .btn-ctrl:active {
   background: rgba(46,204,113,0.4);
@@ -189,13 +189,15 @@ html, body {
   #ctrl-left, #ctrl-right { display: flex; }
   #ctrl { display: none; }
   
-  .hud-box { padding: 3px 5px; border-width: 1px; }
-  .hud-label { font-size: 7px; letter-spacing: 1px; }
-  .hud-val { font-size: 12px; }
-  #barra-bat { height: 5px; margin-top: 2px; }
-  #fill-bat { height: 5px; }
-  #msg { font-size: 12px; padding: 5px 10px; }
-  #score-pop { font-size: 16px; }
+  .hud-box { padding: 2px 4px; border-width: 1px; }
+  .hud-label { font-size: 6px; letter-spacing: 0.5px; }
+  .hud-val { font-size: 11px; }
+  #barra-bat { height: 4px; margin-top: 2px; }
+  #fill-bat { height: 4px; }
+  #msg { font-size: 11px; padding: 4px 8px; }
+  #score-pop { font-size: 14px; }
+  
+  .btn-ctrl { width: 60px; height: 60px; font-size: 28px; }
 }
 
 @media (pointer: coarse) { 
@@ -551,7 +553,6 @@ cvs.width = 1100; cvs.height = 520;
 
 function resize() {
   const wrap = document.getElementById('wrap');
-  const gameContainer = document.getElementById('game-container');
   const winWidth = window.innerWidth;
   const winHeight = window.innerHeight;
   
@@ -573,11 +574,11 @@ function resize() {
     wrap.style.width = canvasWidth + 'px';
     wrap.style.height = canvasHeight + 'px';
   } else {
-    // PC: centrado y con tamaño adecuado
-    let canvasWidth = Math.min(winWidth * 0.85, 1300);
+    // PC: mucho más grande - 95% del ancho, 90% del alto
+    let canvasWidth = Math.min(winWidth * 0.95, 1600);
     let canvasHeight = canvasWidth / targetRatio;
     
-    const maxHeight = winHeight * 0.85;
+    const maxHeight = winHeight * 0.9;
     if (canvasHeight > maxHeight) {
       canvasHeight = maxHeight;
       canvasWidth = canvasHeight * targetRatio;
