@@ -19,7 +19,7 @@ html, body {
 }
 #game-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -27,16 +27,15 @@ html, body {
 }
 #wrap { 
   position: relative; 
-  width: 100%; 
   margin: 0 auto;
 }
 #c { 
   display: block; 
   width: 100%; 
-  height: auto; 
-  border: 3px solid #1a331a; 
+  height: 100%; 
+  border: 2px solid #1a331a; 
   border-radius: 0px; 
-  box-shadow: 0 0 40px rgba(0,200,100,0.15); 
+  box-shadow: 0 0 30px rgba(0,200,100,0.1); 
 }
 #rotate-msg {
   position: fixed;
@@ -66,28 +65,28 @@ html, body {
 }
 #hud { 
   position: absolute; 
-  top: 12px; 
-  left: 12px; 
-  right: 12px; 
+  top: 8px; 
+  left: 8px; 
+  right: 8px; 
   display: none; 
   pointer-events: none; 
   flex-direction: row; 
   justify-content: space-between; 
   align-items: flex-start; 
-  gap: 8px; 
+  gap: 6px; 
   z-index: 15;
 }
 .hud-box { 
-  background: rgba(0,0,0,0.7); 
-  border: 2px solid rgba(100,220,120,0.5); 
-  border-radius: 10px; 
-  padding: 8px 12px; 
+  background: rgba(0,0,0,0.6); 
+  border: 1.5px solid rgba(100,220,120,0.4); 
+  border-radius: 8px; 
+  padding: 6px 8px; 
   color: #fff; 
-  line-height: 1.4; 
+  line-height: 1.3; 
   font-weight: bold; 
   letter-spacing: 1px; 
   backdrop-filter: blur(4px);
-  min-width: 110px;
+  min-width: 0;
   flex: 1;
   text-align: center;
 }
@@ -95,13 +94,13 @@ html, body {
   font-size: 13px; 
   color: #80cbc4; 
   font-weight: normal; 
-  letter-spacing: 2px; 
+  letter-spacing: 1.5px; 
   display: block; 
   margin-bottom: 2px; 
   text-transform: uppercase;
 }
 .hud-val { 
-  font-size: 24px; 
+  font-size: 22px; 
   font-weight: bold; 
 }
 #barra-bat { 
@@ -125,21 +124,21 @@ html, body {
   top: 40%; 
   left: 50%; 
   transform: translate(-50%,-50%); 
-  font-size: 20px; 
+  font-size: 18px; 
   font-weight: bold; 
   pointer-events: none; 
   display: none; 
   text-align: center; 
   text-shadow: 2px 2px #000; 
   border-radius: 8px; 
-  padding: 10px 20px; 
+  padding: 8px 16px; 
   white-space: nowrap; 
   z-index: 10; 
 }
 #score-pop { 
   position: absolute; 
   pointer-events: none; 
-  font-size: 24px; 
+  font-size: 22px; 
   font-weight: bold; 
   color: #f1c40f; 
   text-shadow: 2px 2px #000; 
@@ -148,28 +147,21 @@ html, body {
   transition: none; 
 }
 
-/* Controles - mínimos en móvil */
-#ctrl { 
-  width: 100%;
-  display: flex; 
-  justify-content: space-between; 
-  align-items: flex-end;
-  padding: 4px 6px; 
-  z-index: 30; 
+/* Controles móviles - compactos a los lados */
+#ctrl-left, #ctrl-right {
+  display: none;
   pointer-events: none;
-  background: transparent;
-  margin-top: 2px;
-}
-.ctrl-group {
-  display: flex;
-  gap: 6px;
-  pointer-events: auto;
+  z-index: 30;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 5px;
 }
 .btn-ctrl { 
-  width: 48px; 
-  height: 48px; 
-  background: rgba(20,30,20,0.5); 
-  border: 2px solid rgba(180,220,100,0.4); 
+  width: 50px; 
+  height: 50px; 
+  background: rgba(15,25,15,0.6); 
+  border: 2px solid rgba(180,220,100,0.5); 
   border-radius: 50%; 
   color: #e0f0e0; 
   display: flex; 
@@ -179,42 +171,49 @@ html, body {
   font-weight: bold;
   pointer-events: auto; 
   backdrop-filter: blur(4px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   transition: transform 0.05s, background 0.1s;
+  margin: 3px 0;
 }
 .btn-ctrl:active {
   background: rgba(46,204,113,0.4);
-  transform: scale(0.9);
+  transform: scale(0.85);
   border-color: #aaffaa;
 }
 
-/* HUD responsive */
+/* Ajustes específicos para móvil */
 @media (max-width: 600px) {
-  .hud-box { padding: 4px 6px; min-width: 65px; }
-  .hud-label { font-size: 8px; }
-  .hud-val { font-size: 14px; }
-  #barra-bat { height: 6px; }
-  #fill-bat { height: 6px; }
-  .btn-ctrl { width: 42px; height: 42px; font-size: 20px; }
-  #ctrl { padding: 2px 4px; }
-  #msg { font-size: 13px; }
+  #game-container { flex-direction: row; }
+  #wrap { width: 80% !important; height: 100% !important; margin: 0; }
+  #c { border-width: 2px; }
+  #ctrl-left, #ctrl-right { display: flex; }
+  #ctrl { display: none; }
+  
+  .hud-box { padding: 3px 5px; border-width: 1px; }
+  .hud-label { font-size: 7px; letter-spacing: 1px; }
+  .hud-val { font-size: 12px; }
+  #barra-bat { height: 5px; margin-top: 2px; }
+  #fill-bat { height: 5px; }
+  #msg { font-size: 12px; padding: 5px 10px; }
   #score-pop { font-size: 16px; }
 }
 
 @media (pointer: coarse) { 
-  #ctrl { display: flex !important; } 
+  #ctrl-left, #ctrl-right { display: flex !important; }
+  #ctrl { display: none !important; }
 }
 @media (pointer: fine) {
+  #ctrl-left, #ctrl-right { display: none !important; }
   #ctrl { display: none !important; }
+  #game-container { flex-direction: column; }
 }
 </style>
 </head>
 <body>
 <div id="game-container">
-  <div id="rotate-msg">
-    <span>📱 → ↻</span>
-    🌿 GIRA LA PANTALLA 🌿<br>
-    <span style="font-size:14px; margin-top:15px; color:#80cbc4;">Juega en horizontal</span>
+  <div id="ctrl-left">
+    <div class="btn-ctrl" id="bL">◀</div>
+    <div class="btn-ctrl" id="bR">▶</div>
   </div>
 
   <div id="wrap">
@@ -246,15 +245,9 @@ html, body {
     <div id="score-pop">+100</div>
   </div>
 
-  <div id="ctrl">
-    <div class="ctrl-group">
-      <div class="btn-ctrl" id="bL">◀</div>
-      <div class="btn-ctrl" id="bR">▶</div>
-    </div>
-    <div style="display: flex; flex-direction: column; gap: 4px;">
-      <div class="btn-ctrl" id="bShoot" style="background:rgba(155,89,182,0.25); border-color:rgba(155,89,182,0.7);">💥</div>
-      <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.25); border-color:rgba(46,204,113,0.7);">▲</div>
-    </div>
+  <div id="ctrl-right">
+    <div class="btn-ctrl" id="bShoot" style="background:rgba(155,89,182,0.25); border-color:rgba(155,89,182,0.7);">💥</div>
+    <div class="btn-ctrl" id="bU" style="background:rgba(46,204,113,0.25); border-color:rgba(46,204,113,0.7);">▲</div>
   </div>
 </div>
 
@@ -558,25 +551,41 @@ cvs.width = 1100; cvs.height = 520;
 
 function resize() {
   const wrap = document.getElementById('wrap');
+  const gameContainer = document.getElementById('game-container');
   const winWidth = window.innerWidth;
   const winHeight = window.innerHeight;
   
   const targetRatio = 1100 / 520;
-  // En móvil, ocupar todo el ancho disponible (100%)
-  const widthFactor = isMobile ? 1.0 : 0.9;
-  let canvasWidth = winWidth * widthFactor;
-  let canvasHeight = canvasWidth / targetRatio;
   
-  const ctrlHeight = document.getElementById('ctrl').offsetHeight || 60;
-  const maxHeight = isMobile ? winHeight - ctrlHeight - 5 : Math.min(winHeight * 0.85, 700);
-  
-  if (canvasHeight > maxHeight) {
-    canvasHeight = maxHeight;
-    canvasWidth = canvasHeight * targetRatio;
+  if (isMobile) {
+    // Móvil: 80% del ancho, 100% de la altura
+    const availableWidth = winWidth * 0.8;
+    const availableHeight = winHeight;
+    
+    let canvasWidth = availableWidth;
+    let canvasHeight = canvasWidth / targetRatio;
+    
+    if (canvasHeight > availableHeight) {
+      canvasHeight = availableHeight;
+      canvasWidth = canvasHeight * targetRatio;
+    }
+    
+    wrap.style.width = canvasWidth + 'px';
+    wrap.style.height = canvasHeight + 'px';
+  } else {
+    // PC: centrado y con tamaño adecuado
+    let canvasWidth = Math.min(winWidth * 0.85, 1300);
+    let canvasHeight = canvasWidth / targetRatio;
+    
+    const maxHeight = winHeight * 0.85;
+    if (canvasHeight > maxHeight) {
+      canvasHeight = maxHeight;
+      canvasWidth = canvasHeight * targetRatio;
+    }
+    
+    wrap.style.width = canvasWidth + 'px';
+    wrap.style.height = canvasHeight + 'px';
   }
-  
-  wrap.style.width = canvasWidth + 'px';
-  wrap.style.height = canvasHeight + 'px';
 }
 
 // ── CONTROLES ─────────────────────────────────────────────────────────────────
@@ -753,7 +762,6 @@ function buildWorld(f) {
     cx += w + gap;
   }
 
-  // Solo 2 carteles por fase: a 330m y 660m
   let targetDistances = [330, 660];
   for (let dist of targetDistances) {
     let targetX = dist * 2.5;
@@ -1174,7 +1182,7 @@ function update() {
   }
 
   // Cámara ajustada para móvil (offset mayor para que se vea mejor)
-  camX = R.x - (isMobile ? 380 : 270); 
+  camX = R.x - (isMobile ? 400 : 270); 
   if (camX < 0) camX = 0;
   
   if (R.y > 545) { 
@@ -1255,11 +1263,9 @@ function drawRobotProjectile(pr) {
 function drawSignPost(sign) {
   const x = sign.x, y = sign.y;
   
-  // Palo más alto
   ctx.fillStyle = '#5d4037';
   ctx.fillRect(x - 4, y, 8, 60);
   
-  // Tablón más grande con flecha
   ctx.fillStyle = '#8d6e63';
   ctx.strokeStyle = '#4e342e';
   ctx.lineWidth = 2.5;
@@ -1267,13 +1273,11 @@ function drawSignPost(sign) {
   ctx.fill();
   ctx.stroke();
   
-  // Texto de distancia
   ctx.fillStyle = '#3e2723';
   ctx.font = 'bold 15px Courier New';
   ctx.textAlign = 'center';
   ctx.fillText(sign.distance + 'm', x, y - 2);
   
-  // Flecha y "TALLER" en marrón
   ctx.font = 'bold 12px Courier New';
   ctx.fillStyle = '#3e2723';
   ctx.fillText('TALLER →', x + 2, y + 14);
@@ -1580,7 +1584,6 @@ function draw() {
   platforms.forEach(p => drawPlatform(p));
   drawWorkshop();
   
-  // Carteles de madera
   distanceSigns.forEach(sign => drawSignPost(sign));
   
   plants.forEach(pl => drawPlant(pl));
